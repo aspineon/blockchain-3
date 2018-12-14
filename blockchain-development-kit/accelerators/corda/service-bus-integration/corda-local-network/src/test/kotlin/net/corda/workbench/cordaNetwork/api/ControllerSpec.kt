@@ -2,6 +2,8 @@ package net.corda.workbench.cordaNetwork.api
 
 import com.natpryce.hamkrest.assertion.assert
 import com.natpryce.hamkrest.equalTo
+import net.corda.workbench.commons.event.FileEventStore
+import net.corda.workbench.commons.registry.Registry
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
@@ -21,8 +23,13 @@ object ControllerSpec : Spek({
 
         beforeGroup {
             File("~/.corda-local-network/default").deleteRecursively()
+
+            val registry = Registry()
+            val es = FileEventStore()
+            registry.store(es)
+
             // start app, but don't assign output. all communication will be done via REST
-            net.corda.workbench.cordaNetwork.Javalin(11114).init()
+            net.corda.workbench.cordaNetwork.Javalin(11114).init(registry)
             println("app started...")
         }
 
