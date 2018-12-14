@@ -72,6 +72,16 @@ dependencies {
     // shared libraries is local for now
     compile files('../commons/lib/workbench-commons.jar')
 
+    compile group: "org.http4k", name: "http4k-core", version: "3.102.1"
+    compile group: "org.http4k", name: "http4k-server-jetty", version: "3.103.2"
+    compile group: "org.http4k", name: "http4k-client-apache", version: "3.103.2"
+
+    // need an explicit dependencies for some reason, if not RPC fails
+    //compile "com.google.guava:guava:19.0"
+
+    // web page template engine
+    compile 'com.vladsch.flexmark:flexmark-all:0.34.48'
+    compile 'com.github.spullara.mustache.java:compiler:0.9.5'
 
 
     testCompile group: 'com.natpryce', name: 'hamkrest', version: '1.4.2.2'
