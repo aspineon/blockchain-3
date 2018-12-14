@@ -1,46 +1,51 @@
-package net.corda.workbench.cordaNetwork
+package net.corda.workbench.cordaNetwork.web
 
 
 import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.util.options.MutableDataSet
 import com.vladsch.flexmark.parser.Parser
-import io.javalin.ApiBuilder
-import io.javalin.Context
-
 import net.corda.workbench.commons.event.EventStore
+
 import net.corda.workbench.commons.registry.Registry
+import net.corda.workbench.cordaNetwork.events.Repo
 import net.corda.workbench.transactionBuilder.readFileAsText
 
 import org.http4k.core.*
-import org.http4k.core.body.formAsMap
 import org.http4k.routing.bind
 import org.http4k.routing.path
 import org.http4k.routing.routes
-import org.slf4j.Logger
 import java.io.FileInputStream
 
 class WebController2(private val registry: Registry) : HttpHandler {
-
-//    private val logger: Logger = loggerFor<WebController>()
-//    private val appRepo = AppRepo(registry.retrieve(EventStore::class.java))
-//    val networkManager: String = "http://corda-local-network:1114"
-//    val loader: CordaAppLoader = CordaAppLoader().scan()
+    val repo = Repo(registry.retrieve(EventStore::class.java))
 
 
     private val routes = routes(
             "/" bind Method.GET to {
-                Response(Status.PERMANENT_REDIRECT).header("Location", "/web/index")
+                Response(Status.PERMANENT_REDIRECT).header("Location", "/web/home")
             },
             "/web" bind routes(
-                    "/index" bind Method.GET to {
-//                        val apps = appRepo.allApps()
-                        val page = renderTemplate("index.md",
-                                mapOf("apps" to "apps"))
-                        Response(Status.OK)
-                                .body(page)
-                                .header("Content-Type", "text/html; charset=utf-8")
+                    "/home" bind Method.GET to {
+                        val networks = repo.networks()
+                        val page = renderTemplate("home.md",
+                                mapOf("networks" to networks))
+                        html(page)
 
+                    },
+                    "/networks/{network}" bind Method.GET to { req ->
+                        val network = req.path("network")!!
+                        val nodes = repo.nodes(network)
+                        val page = renderTemplate("network.md",
+                                mapOf("nodes" to nodes, "name" to network))
+                        html(page)
+
+                    },
+                    "/style.css" bind Method.GET to {
+                        val css = FileInputStream("src/main/resources/www/style.css").bufferedReader().use { it.readText() }
+                        css(css)
                     }
+
+
 //                    "{network}/{app}" bind Method.GET to { req ->
 //                        val network = req.path("network")!!
 //                        val appName = req.path("app")!!
@@ -146,6 +151,13 @@ class WebController2(private val registry: Registry) : HttpHandler {
 
     }
 
+    private fun css(page: String): Response {
+        return Response(Status.OK)
+                .body(page)
+                .header("Content-Type", "text/css; charset=utf-8")
+
+    }
+
     private fun text(page: String): Response {
         return Response(Status.OK)
                 .body(page)
@@ -160,14 +172,16 @@ class WebController2(private val registry: Registry) : HttpHandler {
 
     }
 
-
     fun renderTemplate(path: String, params: Map<String, Any?> = emptyMap()): String {
         val html = renderMustache(path, params)
 
         // merge with layout.html.html
         val layout = FileInputStream("src/main/resources/www/layout.html").bufferedReader().use { it.readText() }
-        return layout.replace("<!--BODYTEXT-->", html, false)
+        val result = layout.replace("<!--BODYTEXT-->", html, false)
+        println(result)
+        return result
     }
+
 
     private fun renderMustache(path: String, params: Map<String, Any?>): String {
         try {

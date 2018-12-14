@@ -43,4 +43,11 @@ object EventFactory {
 
     }
 
+
+    fun NETWORK_CREATED(network: String): Event {
+        return Event(type = "NetworkCreated",
+                aggregateId = network)
+
+    }
+
 }

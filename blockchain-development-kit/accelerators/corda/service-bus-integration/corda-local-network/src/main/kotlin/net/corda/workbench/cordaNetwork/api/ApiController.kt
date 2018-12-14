@@ -33,6 +33,7 @@ class ApiController(private val registry: Registry) {
                     @Suppress("UNCHECKED_CAST")
                     val nodes = JSONArray(ctx.body()).toList() as List<String>
 
+                    executor.exec(CreateNetworkTask(registry.overide(taskContext)))
                     executor.exec(CreateNodesTask(registry.overide(taskContext), nodes))
 
                     ctx.json(successMessage("successfully created network $networkName"))
