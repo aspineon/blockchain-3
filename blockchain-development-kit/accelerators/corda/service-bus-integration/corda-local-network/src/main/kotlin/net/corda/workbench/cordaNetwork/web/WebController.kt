@@ -4,20 +4,30 @@ package net.corda.workbench.cordaNetwork.web
 import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.util.options.MutableDataSet
 import com.vladsch.flexmark.parser.Parser
+import io.javalin.Context
 import net.corda.workbench.commons.event.EventStore
 
 import net.corda.workbench.commons.registry.Registry
+import net.corda.workbench.commons.taskManager.*
 import net.corda.workbench.cordaNetwork.events.Repo
+import net.corda.workbench.cordaNetwork.tasks.CreateNetworkTask
+import net.corda.workbench.cordaNetwork.tasks.CreateNodesTask
+import net.corda.workbench.cordaNetwork.tasks.RealContext
 import net.corda.workbench.transactionBuilder.readFileAsText
 
 import org.http4k.core.*
+import org.http4k.core.body.formAsMap
 import org.http4k.routing.bind
 import org.http4k.routing.path
 import org.http4k.routing.routes
+import org.json.JSONArray
 import java.io.FileInputStream
 
 class WebController2(private val registry: Registry) : HttpHandler {
     val repo = Repo(registry.retrieve(EventStore::class.java))
+
+    // todo - should be injected in
+    private val taskRepos = HashMap<String, TaskRepo>()
 
 
     private val routes = routes(
@@ -29,6 +39,26 @@ class WebController2(private val registry: Registry) : HttpHandler {
                         val networks = repo.networks()
                         val page = renderTemplate("home.md",
                                 mapOf("networks" to networks))
+                        html(page)
+
+                    },
+
+                    "/networks/create" bind Method.GET to { req ->
+                        val page = renderTemplate("createNetworkForm.html", emptyMap())
+                        html(page)
+
+                    },
+                    "/networks/create" bind Method.POST to { req ->
+                        val createRequest = unpackCreateNetworkForm(req)
+
+                        val context = RealContext(createRequest.name)
+                        val executor = buildExecutor(context)
+
+                        executor.exec(CreateNetworkTask(registry.overide(context)))
+                        executor.exec(CreateNodesTask(registry.overide(context), createRequest.organisations))
+
+                        val page = renderTemplate("networkCreated.md",
+                                mapOf("networkName" to createRequest.name))
                         html(page)
 
                     },
@@ -172,7 +202,7 @@ class WebController2(private val registry: Registry) : HttpHandler {
 
     }
 
-    fun renderTemplate(path: String, params: Map<String, Any?> = emptyMap()): String {
+    private fun renderTemplate(path: String, params: Map<String, Any?> = emptyMap()): String {
         val html = renderMustache(path, params)
 
         // merge with layout.html.html
@@ -189,15 +219,59 @@ class WebController2(private val registry: Registry) : HttpHandler {
             val content = readFileAsText("src/main/resources/www/$path", params)
 
             // markdown processing
-            val options = MutableDataSet()
-            val parser = Parser.builder(options).build()
-            val renderer = HtmlRenderer.builder(options).build()
-            val document = parser.parse(content)
-            return renderer.render(document)
+            if (path.endsWith(".md")) {
+                val options = MutableDataSet()
+                val parser = Parser.builder(options).build()
+                val renderer = HtmlRenderer.builder(options).build()
+                val document = parser.parse(content)
+                return renderer.render(document)
+            } else {
+                return content
+            }
         } catch (ex: Exception) {
             return "<pre>" + ex.message!! + "</pre>"
         }
     }
+
+
+    private fun buildMessageSink(context: TaskContext): ((TaskLogMessage) -> Unit) {
+        val repo = taskRepos.getOrPut(context.networkName) {
+            SimpleTaskRepo("${context.workingDir}/tasks")
+        }
+        return {
+            try {
+                repo.store(it)
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+            }
+        }
+
+    }
+
+    private fun buildExecutor(context: TaskContext): BlockingTasksExecutor {
+        val messageSink = buildMessageSink(context)
+        return BlockingTasksExecutor(messageSink)
+    }
+
+
+    private fun unpackCreateNetworkForm(req: Request): CreateNetworkRequest {
+        try {
+            val params = req.formAsMap()
+
+            val name = params["networkName"]!!.single()!!
+            val organisations = params["organisations"]!!
+                    .single()!!
+                    .split("\n")
+                    .map { it.trim() }
+
+            return CreateNetworkRequest(name, organisations + listOf("O=Notary,L=London,C=GB"))
+        } catch (ex: Exception) {
+            throw RuntimeException("Incorrect params passed to Create Network - '${ex.message}'", ex)
+        }
+    }
+
+
+    data class CreateNetworkRequest(val name: String, val organisations: List<String>)
 
 
 }

@@ -26,10 +26,14 @@ object RepoSpec : Spek({
 
         it ("should return available networks") {
             es.storeEvent(EventFactory.NETWORK_CREATED("networkA"))
+            es.storeEvent(EventFactory.NETWORK_CREATED("networkB"))
+            es.storeEvent(EventFactory.NETWORK_STARTED("networkA"))
+
 
             val networks = repo.networks()
-            assertThat(networks.size, equalTo(1))
-            assertThat(networks[0], equalTo(NetworkInfo("networkA")))
+            assertThat(networks.size, equalTo(2))
+            assertThat(networks[0], equalTo(NetworkInfo("networkA","Running")))
+            assertThat(networks[1], equalTo(NetworkInfo("networkB","Never Started")))
         }
 
 
@@ -41,8 +45,6 @@ object RepoSpec : Spek({
             assertThat(nodes.size, equalTo(2))
             assertThat(nodes[0], equalTo(NodeInfo("O=Alice,L=London,C=GB")))
         }
-
-
 
     }
 

@@ -8,16 +8,13 @@ import net.corda.workbench.transactionBuilder.events.EventFactory
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Status
+import org.http4k.core.body.form
+import org.http4k.hamkrest.*
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 import org.junit.platform.runner.JUnitPlatform
 import org.junit.runner.RunWith
-
-import org.http4k.hamkrest.hasBody
-import org.http4k.hamkrest.hasContentType
-import org.http4k.hamkrest.hasHeader
-import org.http4k.hamkrest.hasStatus
 
 @RunWith(JUnitPlatform::class)
 object ControllerSpec : Spek({
@@ -68,6 +65,24 @@ object ControllerSpec : Spek({
             assertThat(response, hasBody(containsSubstring("Network net1")))
             assertThat(response, hasBody(containsSubstring("Alice")))
             assertThat(response, hasBody(containsSubstring("Bob")))
+
+        }
+
+        it("should render create network page") {
+            val response = controller(Request(Method.GET, "/web/networks/create"))
+
+            assertThat(response, hasStatus(Status.OK))
+            assertThat(response, hasBody(containsSubstring("Create Network")))
+        }
+
+
+        it("should create a network") {
+            val response = controller(Request(Method.POST, "/web/networks/create")
+                    .form("networkName", "testnet01")
+                    .form("organisations", "O=Alice,L=New York,C=US \n Bob"))
+
+            assertThat(response, hasStatus(Status.OK))
+            assertThat(response, hasBody(containsSubstring("testnet01 Created")))
 
         }
 

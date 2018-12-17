@@ -26,14 +26,14 @@ object NodeConfigTaskSpec : Spek({
 
 
             // comment this out to speed up local tests.
-            ConfigBuilderTask(registry, listOf("O=Alice,L=New York,C=US", "O=Bob,L=Paris,C=FR")).exec()
+            ConfigBuilderTask(registry, listOf("O=Alice, L=New York,C=US", "O=Bob,L=Paris,C=FR")).exec()
             NetworkBootstrapperTask(ctx).exec()
         }
 
         it("should read 'alice_node' config") {
             val config = NodeConfigTask(ctx, "alice_node").exec()
 
-            assert.that(config.legalName, equalTo("O=Alice,L=New York,C=US"))
+            assert.that(config.legalName, equalTo("O=Alice, L=New York, C=US"))
             assert.that(config.port, equalTo(10001))
             assert.that(config.sshPort, equalTo(10004))
         }
@@ -41,7 +41,7 @@ object NodeConfigTaskSpec : Spek({
         it("should read 'Bob' config") {
             val config = NodeConfigTask(ctx, "Bob").exec()
 
-            assert.that(config.legalName, equalTo("O=Bob,L=Paris,C=FR"))
+            assert.that(config.legalName, equalTo("O=Bob, L=Paris, C=FR"))
         }
 
         it("should allow 'alice_node' or 'Alice' for node name") {
