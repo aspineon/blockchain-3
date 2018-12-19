@@ -64,6 +64,14 @@ object ProcessManager {
         }
     }
 
+    fun killAll(){
+        for (p in processes.entries){
+            println ("Forcibly killing ${p.key}")
+            p.value.destroyForcibly()
+        }
+        processes.clear()
+    }
+
     data class Key(val network: String, val processName: String)
 
     data class ProcessStatus(val name: String, val isAlive: Boolean)
