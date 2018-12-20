@@ -13,7 +13,6 @@ object TaskExecutorSpec : Spek({
     describe("Running tasks ") {
 
         it("should run a simple task ") {
-
             val t = TestTask()
             val sink = TestMessageSink()
             val executor = TaskExecutor { sink.sink(it) }
@@ -25,10 +24,9 @@ object TaskExecutorSpec : Spek({
         }
 
         it("should run a failing task ") {
-
             val t = FailingTask()
             val sink = TestMessageSink()
-            val executor = TaskExecutor({ sink.sink(it) })
+            val executor = TaskExecutor { sink.sink(it) }
             executor.exec(t)
 
             assert.that(sink.messages(),

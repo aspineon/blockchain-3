@@ -12,12 +12,10 @@ import kotlin.concurrent.thread
  */
 
 
-
 class ProcessManager constructor(
         private val outputSink: (String) -> Unit = { msg -> ProcessMonitor.consoleMessageSink(msg) },
         private val errorSink: (String) -> Unit = { msg -> ProcessMonitor.consoleMessageSink(msg) },
         private val processCompletedSink: (ProcessManager.ManagedProcess, Int) -> Unit = { _, _ -> }
-
 
 ) {
     private val sleepTime = 10
