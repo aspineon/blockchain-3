@@ -1,9 +1,12 @@
 package net.corda.workbench.commons.processManager
 
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.*
+import java.util.concurrent.TimeUnit
 import kotlin.collections.HashMap
 import kotlin.concurrent.thread
 
@@ -18,11 +21,16 @@ class ProcessManager constructor(
         private val processCompletedSink: (ProcessManager.ManagedProcess, Int) -> Unit = { _, _ -> }
 
 ) {
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(ProcessManager::class.java)
+    }
+
+
     private val sleepTime = 10
     private var monitoring = false
-    private val processes = HashMap<Key, Process>()
     private val processList = ArrayList<ManagedProcess>()
     private val processMonitors = HashMap<UUID, ProcessMonitor>()
+
 
     fun register(process: Process, id: UUID = UUID.randomUUID(), label: String = "") {
         val mp = ManagedProcess(process, id, label)
@@ -49,11 +57,6 @@ class ProcessManager constructor(
         return processList.map { mapToProcessInfo(it) }
     }
 
-    fun register(network: String, task: String, process: Process) {
-        val key = Key(network, task)
-        println("Process $key registered ")
-        processes[key] = process
-    }
 
     private fun mapToProcessInfo(mp: ManagedProcess): ProcessInfo {
         val monitor = processMonitors[mp.id]!!
@@ -66,9 +69,9 @@ class ProcessManager constructor(
             monitoring = true
             thread(isDaemon = true) {
                 while (monitoring) {
-                    println("Process monitor checking ${processes.size} processes...")
-                    processes.forEach {
-                        println("  process: ${it.key}, isAlive? ${it.value.isAlive}")
+                    println("Process monitor checking ${processList.size} processes...")
+                    processList.forEach {
+                        println("  process: ${it.label}, isAlive? ${it.process.isAlive}")
                     }
                     println("Process monitor sleeping for $sleepTime...")
                     Thread.sleep(sleepTime * 1000L)
@@ -78,46 +81,63 @@ class ProcessManager constructor(
         }
     }
 
-    fun all(): List<Process> {
-        return ArrayList(processes.values)
-    }
 
-    fun queryForNetwork(network: String): List<ProcessStatus> {
-        val results = ArrayList<ProcessStatus>()
-        processes.entries.forEach {
-            if (it.key.network == network) {
-                results.add(ProcessStatus(it.key.processName, it.value.isAlive))
-            }
-        }
-        return results
-    }
 
-    fun queryForNodeOnNetwork(network: String, processName: String): Process? {
-        return processes[Key(network, processName)]
-    }
-
-    fun removeProcess(process: Process) {
-        // not the nicest code :(
-        processes.entries.forEach {
-            if (it.value == process) {
-                processes.remove(it.key)
-                println("Process ${it.key} removed")
-                return
-            }
-        }
-    }
-
+    /**
+     * Kill everything - rather brutal, not for everyday use.
+     */
     fun killAll() {
-        for (p in processes.entries) {
-            println("Forcibly killing ${p.key}")
-            p.value.destroyForcibly()
+        for (p in processList) {
+            println("Forcibly killing $p")
+            brutalKill(p.process)
         }
-        processes.clear()
+        processList.clear()
+
     }
 
-    data class Key(val network: String, val processName: String)
 
-    data class ProcessStatus(val name: String, val isAlive: Boolean)
+    private fun brutalKill(process: Process) {
+        val pid = getPidOfProcess(process)
+        if (pid != -1L) {
+            pkill(pid)
+        }
+        try {
+            process.destroyForcibly()
+        } catch (ignored: Exception) {
+        }
+    }
+
+
+    @Synchronized
+    fun getPidOfProcess(p: Process): Long {
+        var pid: Long = -1
+
+        try {
+            if (p.javaClass.name == "java.lang.UNIXProcess") {
+                val f = p.javaClass.getDeclaredField("pid")
+                f.isAccessible = true
+                pid = f.getLong(p)
+                f.isAccessible = false
+            }
+        } catch (e: Exception) {
+            pid = -1
+        }
+
+        return pid
+    }
+
+    private fun pkill(pid: Long) {
+        logger.debug("using pkill on PID $pid")
+        val pb = ProcessBuilder(listOf("pkill", "-P", pid.toString()))
+                .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+                .redirectError(ProcessBuilder.Redirect.INHERIT)
+                .start()
+
+        pb.waitFor(5, TimeUnit.SECONDS)
+        logger.debug("stdout: " + pb.inputStream.bufferedReader().use { it.readText() })
+        logger.debug("err:" + pb.errorStream.bufferedReader().use { it.readText() })
+
+    }
 
     data class ManagedProcess(val process: Process, val id: UUID = UUID.randomUUID(), val label: String = "")
 
