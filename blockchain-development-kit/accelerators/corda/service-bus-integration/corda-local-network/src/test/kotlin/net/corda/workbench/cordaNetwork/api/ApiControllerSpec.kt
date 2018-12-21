@@ -4,8 +4,8 @@ import com.natpryce.hamkrest.assertion.assert
 import com.natpryce.hamkrest.assertion.assertThat
 import com.natpryce.hamkrest.equalTo
 import net.corda.workbench.commons.event.FileEventStore
+import net.corda.workbench.commons.processManager.ProcessManager
 import net.corda.workbench.commons.registry.Registry
-import net.corda.workbench.cordaNetwork.ProcessManager
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
@@ -17,22 +17,24 @@ import java.io.File
 import java.io.FileInputStream
 
 @RunWith(JUnitPlatform::class)
-object ControllerSpec : Spek({
+object ApiControllerSpec : Spek({
 
     val baseUrl = "http://corda-local-network:11114/"
     val networkName = "controllerspec"
+    lateinit var registry : Registry
 
     describe("The API Controller") {
 
         beforeGroup {
-            //println("## beforeGroup  - cleanup")
-            //val deleted = File(System.getProperty("user.home") + "/.corda-local-network/$networkName").deleteRecursively()
-            //assertThat(deleted, equalTo(true))
+            println("## beforeGroup  - cleanup")
+            val deleted = File(System.getProperty("user.home") + "/.corda-local-network/$networkName").deleteRecursively()
+            assertThat(deleted, equalTo(true))
 
 
-            val registry = Registry()
+            registry = Registry()
             val es = FileEventStore()
-            registry.store(es)
+            val processManager = ProcessManager()
+            registry.store(es).store(processManager)
 
             // start app, but don't assign output. all communication will be done via REST
             net.corda.workbench.cordaNetwork.Javalin(11114).init(registry)
@@ -40,6 +42,8 @@ object ControllerSpec : Spek({
         }
 
         afterGroup {
+            println("killing all running processes")
+            registry.retrieve(ProcessManager::class.java).killAll()
         }
 
         context("Building and starting a network") {
@@ -47,7 +51,10 @@ object ControllerSpec : Spek({
             afterEachTest {
                 // cleanup after each run
                 khttp.delete(url = baseUrl + networkName)
-                ProcessManager.killAll()
+
+                println("killing all running processes")
+                registry.retrieve(ProcessManager::class.java).killAll()
+                //.killAll()
             }
 
 

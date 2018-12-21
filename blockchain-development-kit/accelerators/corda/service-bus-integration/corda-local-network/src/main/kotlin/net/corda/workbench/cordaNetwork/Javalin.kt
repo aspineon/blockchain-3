@@ -39,7 +39,6 @@ class Javalin(private val port: Int) {
         app.start()
         println("Ready :)")
 
-        ProcessManager.monitor()
         return app
 
     }

@@ -6,7 +6,6 @@ import net.corda.workbench.commons.event.Filter
 
 class Repo(val es: EventStore) {
 
-
     /**
      * The full list of networks
      */
@@ -53,6 +52,35 @@ class Repo(val es: EventStore) {
                 }
         return ArrayList(result).sortedBy { it.organisation }
     }
+
+    /**
+     * All the nodes that are currently recorded as running (according to the stored events)
+     * Note, this doesn't necessarily reflected the actual state of the running process.
+     */
+    fun runningNodes(): List<RunningNode> {
+        val nodes = HashMap<Pair<String, String>, Long>()
+        es.retrieve()
+                .forEach { ev ->
+                    when {
+                        ev.type == "NodeStarted" -> {
+                            val key = Pair(ev.aggregateId!!, ev.payload["node"] as String)
+                            nodes[key] = (ev.payload["pid"] as Int).toLong()
+                        }
+                        ev.type == "NodeStopped" -> {
+                            val key = Pair(ev.aggregateId!!, ev.payload["node"] as String)
+                            nodes.remove(key)
+
+                        }
+                        else -> { /* dont care */
+                        }
+                    }
+                }
+        return nodes
+                .entries
+                .map { RunningNode(it.key.first, it.key.second, it.value) }
+                .sortedBy { "${it.network}:${it.node}" }
+
+    }
 }
 
 data class NetworkInfo(val name: String, val status: String) {
@@ -70,5 +98,9 @@ data class NodeInfo(val x500Name: String) {
     val organisation = parts.organisation
     val country = parts.country
     val locality = parts.locality
-
 }
+
+/**
+ * Information about a running node.
+ */
+data class RunningNode(val network: String, val node: String, val pid: Long)

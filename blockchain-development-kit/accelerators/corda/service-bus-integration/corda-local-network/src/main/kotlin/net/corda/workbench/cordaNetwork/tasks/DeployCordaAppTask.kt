@@ -14,7 +14,7 @@ class DeployCordaAppTask(ctx: TaskContext, private val cordapp: File) : NodesTas
 
     override fun exec(executionContext: ExecutionContext) {
         for (f in nodesIter()) {
-            executionContext.messageStream.invoke("Deploying cordapp ${cordapp.name} to ${f.name}")
+            executionContext.messageSink.invoke("Deploying cordapp ${cordapp.name} to ${f.name}")
             val target = Paths.get(f.toString(), "cordapps", cordapp.name)
                     .normalize()
                     .toAbsolutePath()

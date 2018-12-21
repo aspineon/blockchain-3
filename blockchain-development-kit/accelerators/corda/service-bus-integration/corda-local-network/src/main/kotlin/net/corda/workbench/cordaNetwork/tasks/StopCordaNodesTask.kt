@@ -1,6 +1,7 @@
 package net.corda.workbench.cordaNetwork.tasks
 
 import net.corda.workbench.commons.event.EventStore
+import net.corda.workbench.commons.processManager.ProcessManager
 import net.corda.workbench.commons.registry.Registry
 import net.corda.workbench.commons.taskManager.ExecutionContext
 import net.corda.workbench.commons.taskManager.NodesTask
@@ -19,7 +20,7 @@ class StopCordaNodesTask(val registry: Registry) : NodesTask(registry.retrieve(T
             try {
                 StopCordaNodeTask(registry, node.name).exec(executionContext)
             } catch (ex: Exception) {
-                executionContext.messageStream("problem in StopCordaNodeTask for $node - ${ex.message}")
+                executionContext.messageSink("problem in StopCordaNodeTask for $node - ${ex.message}")
             }
         }
         es.storeEvent(EventFactory.NETWORK_STOPPED(ctx.networkName))

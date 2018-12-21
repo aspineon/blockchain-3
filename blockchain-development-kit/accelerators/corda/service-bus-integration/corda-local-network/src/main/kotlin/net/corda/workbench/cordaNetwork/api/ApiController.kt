@@ -5,12 +5,12 @@ import io.javalin.Context
 import io.javalin.Javalin
 import net.corda.workbench.commons.event.EventStore
 import net.corda.workbench.commons.event.Filter
+import net.corda.workbench.commons.processManager.ProcessManager
 import net.corda.workbench.commons.taskManager.BlockingTasksExecutor
 import net.corda.workbench.commons.taskManager.SimpleTaskRepo
 import net.corda.workbench.commons.taskManager.TaskContext
 import net.corda.workbench.commons.taskManager.TaskLogMessage
 import net.corda.workbench.commons.taskManager.TaskRepo
-import net.corda.workbench.cordaNetwork.ProcessManager
 import org.json.JSONArray
 import java.io.File
 import net.corda.workbench.commons.registry.Registry
@@ -21,6 +21,7 @@ class ApiController(private val registry: Registry) {
 
     // simple file log of tasks message
     private val taskRepos = HashMap<String, TaskRepo>()
+    private val processManager = registry.retrieve(ProcessManager::class.java)
 
     fun register(app: Javalin) {
 
@@ -130,7 +131,7 @@ class ApiController(private val registry: Registry) {
 
                 ApiBuilder.get("processes") { ctx ->
                     val networkName = ctx.param("networkName")!!
-                    val processes = ProcessManager.queryForNetwork(networkName)
+                    val processes = processManager.allProcesses().filter { it.label.startsWith(networkName) }
                     ctx.json(processes)
                 }
 

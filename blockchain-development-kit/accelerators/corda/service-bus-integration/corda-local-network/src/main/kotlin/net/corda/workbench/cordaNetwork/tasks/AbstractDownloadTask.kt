@@ -26,7 +26,7 @@ abstract class AbstractDownloadTask() : BaseTask() {
     private fun downloadJar(executionContext: ExecutionContext) {
         try {
             if (!File(fileName).exists()) {
-                executionContext.messageStream.invoke("starting download of $fileName from $externalUrl")
+                executionContext.messageSink.invoke("starting download of $fileName from $externalUrl")
 
                 safeDelete("$fileName.download")
                 File(downloadCache).mkdirs()
@@ -37,7 +37,7 @@ abstract class AbstractDownloadTask() : BaseTask() {
                         .transferFrom(readableByteChannel, 0, Long.MAX_VALUE)
                 safeRename("$fileName.download",fileName)
 
-                executionContext.messageStream.invoke("completed download of $fileName from $externalUrl")
+                executionContext.messageSink.invoke("completed download of $fileName from $externalUrl")
             }
         } catch (ex: Exception) {
             // todo - should be reporting to the error stream

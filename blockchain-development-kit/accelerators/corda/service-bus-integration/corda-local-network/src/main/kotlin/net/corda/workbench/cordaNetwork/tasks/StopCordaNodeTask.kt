@@ -2,11 +2,11 @@ package net.corda.workbench.cordaNetwork.tasks
 
 import net.corda.workbench.commons.event.EventStore
 import net.corda.workbench.commons.event.Filter
+import net.corda.workbench.commons.processManager.ProcessManager
 import net.corda.workbench.commons.registry.Registry
 import net.corda.workbench.commons.taskManager.BaseTask
 import net.corda.workbench.commons.taskManager.ExecutionContext
 import net.corda.workbench.commons.taskManager.TaskContext
-import net.corda.workbench.cordaNetwork.ProcessManager
 import net.corda.workbench.transactionBuilder.events.EventFactory
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -27,21 +27,23 @@ class StopCordaNodeTask(registry: Registry, private val nodeName: String) : Base
         private val logger: Logger = LoggerFactory.getLogger(StopCordaNodeTask::class.java)
     }
 
-    private val ctx = registry.retrieve(TaskContext::class.java)!!
-    private val es = registry.retrieve(EventStore::class.java)!!
+    private val ctx = registry.retrieve(TaskContext::class.java)
+    private val es = registry.retrieve(EventStore::class.java)
+    private val processManager = registry.retrieve(ProcessManager::class.java)
+
 
     override fun exec(executionContext: ExecutionContext) {
 
-        executionContext.messageStream("$nodeName: Attempting to stop node.")
+        executionContext.messageSink("$nodeName: Attempting to stop node.")
 
         // First try killing the Java process
-        val p = ProcessManager.queryForNodeOnNetwork(ctx.networkName, nodeName)
+        val p = processManager.findByLabel(ctx.networkName + ":" + nodeName)
         if (p != null) {
-            val pid = getPidOfProcess(p)
-            val killed = tryByJavaProcess(executionContext, p)
+            val pid = getPidOfProcess(p.process)
+            val killed = tryByJavaProcess(executionContext, p.process)
             if (killed) {
-                es.storeEvent(EventFactory.NODE_STOPPED(ctx.networkName, nodeName, pid.toInt(), "Shutdown Java process"))
-                executionContext.messageStream("$nodeName: Clean shutdown of node.")
+                es.storeEvent(EventFactory.NODE_STOPPED(ctx.networkName, nodeName, pid, "Shutdown Java process"))
+                executionContext.messageSink("$nodeName: Clean shutdown of node.")
             }
         }
 
@@ -66,11 +68,10 @@ class StopCordaNodeTask(registry: Registry, private val nodeName: String) : Base
                 if (p::class.java.getName().equals("java.lang.UNIXProcess")) {
                     val f = p::class.java.getDeclaredField("pid");
                     f.setAccessible(true);
-                    val pid = f.getInt(p);
+                    val pid = f.getLong(p);
                     pkill(pid)
                 }
-                executionContext.messageStream("$nodeName: destroyed running Java process")
-                ProcessManager.removeProcess(p)
+                executionContext.messageSink("$nodeName: destroyed running Java process")
                 return true
             } catch (ex: Exception) {
                 logger.debug("Problem removing process $p - ${ex.message}")
@@ -80,7 +81,7 @@ class StopCordaNodeTask(registry: Registry, private val nodeName: String) : Base
     }
 
 
-    private fun pkill(pid: Int) {
+    private fun pkill(pid: Long) {
         logger.debug("using pkill on PID $pid")
         val pb = ProcessBuilder(listOf("pkill", "-P", pid.toString()))
                 .redirectOutput(ProcessBuilder.Redirect.INHERIT)
@@ -97,18 +98,18 @@ class StopCordaNodeTask(registry: Registry, private val nodeName: String) : Base
     /**
      * reduce events to find a PID that might not have been shutdown
      */
-    fun orphanedPIDs(networkName: String, nodeName: String): Set<Int> {
-        val pids = HashSet<Int>()
+    fun orphanedPIDs(networkName: String, nodeName: String): Set<Long> {
+        val pids = HashSet<Long>()
         es.retrieve(Filter(aggregateId = networkName))
                 .forEach { event ->
                     when {
                         event.type == "NodeStarted" && nodeName == event.payload["node"] -> {
                             val pid = event.payload["pid"] as Int
-                            pids.add(pid)
+                            pids.add(pid.toLong())
                         }
                         event.type == "NodeStopped" && nodeName == event.payload["node"] -> {
                             val pid = event.payload["pid"] as Int
-                            pids.remove(pid)
+                            pids.remove(pid.toLong())
                         }
                     }
                 }
