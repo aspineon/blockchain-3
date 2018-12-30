@@ -46,7 +46,7 @@ class ExecutionContext(messageSink: (String) -> Unit = { consoleMessageSink(it) 
 }
 
 /**
- * Executes a single task with logging
+ * Executes a single task with logging, passing on any exceptions thrown
  */
 class TaskExecutor(private val taskLogMessageSink: (TaskLogMessage) -> Unit) {
 
@@ -67,6 +67,7 @@ class TaskExecutor(private val taskLogMessageSink: (TaskLogMessage) -> Unit) {
         } catch (ex: Exception) {
             sink.invoke("Failed ${t::class.java.simpleName}")
             sink.invoke("Exception is: ${ex.message}")
+            throw ex
         }
     }
 
