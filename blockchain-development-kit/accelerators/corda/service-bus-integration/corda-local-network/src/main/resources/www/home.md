@@ -1,7 +1,4 @@
-# Corda Local Network 
-
-
-Run a standalone networks and deploy corda apps to all nodes. 
+Run standalone networks and deploy corDapps to all nodes. 
 
 
 ## Available Networks

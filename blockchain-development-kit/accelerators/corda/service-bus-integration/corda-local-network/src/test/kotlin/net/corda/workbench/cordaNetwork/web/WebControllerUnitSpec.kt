@@ -16,10 +16,13 @@ import org.jetbrains.spek.api.dsl.it
 import org.junit.platform.runner.JUnitPlatform
 import org.junit.runner.RunWith
 
+/**
+ * Quick to run unit tests, with any slow internal processing mocked out.
+ */
 @RunWith(JUnitPlatform::class)
-object ControllerSpec : Spek({
+object WebControllerUnitSpec : Spek({
 
-    val baseUrl = "http://corda-local-network:1115/"
+    //val baseUrl = "http://corda-local-network:1115/"
 
     val es = FileEventStore()
     val registry = Registry().store(es)
@@ -58,14 +61,13 @@ object ControllerSpec : Spek({
 
         it("should render list of nodes for network") {
             es.storeEvent(EventFactory.NETWORK_CREATED("net1"))
-            es.storeEvent(EventFactory.NODES_CREATED("net1", listOf("O=Alice,L=London,C=GB","O=Bob,L=New York,C=US")))
+            es.storeEvent(EventFactory.NODES_CREATED("net1", listOf("O=Alice,L=London,C=GB", "O=Bob,L=New York,C=US")))
             val response = controller(Request(Method.GET, "/web/networks/net1"))
 
             assertThat(response, hasStatus(Status.OK))
             assertThat(response, hasBody(containsSubstring("Network net1")))
             assertThat(response, hasBody(containsSubstring("Alice")))
             assertThat(response, hasBody(containsSubstring("Bob")))
-
         }
 
         it("should render create network page") {

@@ -17,6 +17,7 @@ import org.junit.runner.RunWith
 object StartCordaNodeSpec : Spek({
 
     val ctx = TestContext("startcordanodespec")
+    val processManager = ProcessManager()
     lateinit var registry:Registry
 
     //File(ctx.workingDir).deleteRecursively()
@@ -28,11 +29,15 @@ object StartCordaNodeSpec : Spek({
             //File(ctx.workingDir).deleteRecursively()
             registry = Registry().store(ctx)
                     .store(FileEventStore())
-                    .store(ProcessManager())
+                    .store(processManager)
 
             // comment this out to speed up local tests.
-            //ConfigBuilderTask(registry, listOf("O=Alice,L=New York,C=US")).exec()
-            //NetworkBootstrapperTask(ctx).exec()
+            ConfigBuilderTask(registry, listOf("O=Alice,L=New York,C=US")).exec()
+            NetworkBootstrapperTask(ctx).exec()
+        }
+
+        afterEachTest {
+            processManager.killAll()
         }
 
         it("should start 'alice_node' ") {
@@ -54,19 +59,4 @@ object StartCordaNodeSpec : Spek({
 })
 
 
-//fun main(args : Array<String>) {
-//    thread() {
-//        var i = 1
-//        while (i <= 10) {
-//            println("${Thread.currentThread()} is running.")
-//            Thread.sleep(1000)
-//            i += 1
-//
-//        }
-//        println("${Thread.currentThread()} is done")
-//
-//    }
-//
-//    println ("ghdsgjd")
-//}
 

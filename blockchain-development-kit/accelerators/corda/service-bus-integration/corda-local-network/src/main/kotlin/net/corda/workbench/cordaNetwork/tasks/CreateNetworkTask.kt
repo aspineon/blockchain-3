@@ -13,7 +13,7 @@ import net.corda.workbench.transactionBuilder.events.EventFactory
  * at the moment, just store an event in the eventstore
  */
 
-class CreateNetworkTask(private val registry: Registry) : BaseTask() {
+class CreateNetworkTask(registry: Registry) : BaseTask() {
     private val ctx = registry.retrieve(TaskContext::class.java)!!
     private val es = registry.retrieve(EventStore::class.java)!!
 
@@ -21,6 +21,8 @@ class CreateNetworkTask(private val registry: Registry) : BaseTask() {
         val repo = Repo(es)
         if (!repo.networks().map { it.name }.contains(ctx.networkName)) {
             es.storeEvent(EventFactory.NETWORK_CREATED(ctx.networkName))
+        } else {
+            throw RuntimeException("network ${ctx.networkName} already exists")
         }
     }
 }

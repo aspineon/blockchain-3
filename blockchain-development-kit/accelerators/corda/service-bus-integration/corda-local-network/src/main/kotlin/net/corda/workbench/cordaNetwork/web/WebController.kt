@@ -4,15 +4,13 @@ package net.corda.workbench.cordaNetwork.web
 import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.util.options.MutableDataSet
 import com.vladsch.flexmark.parser.Parser
-import io.javalin.Context
 import net.corda.workbench.commons.event.EventStore
+import net.corda.workbench.commons.event.Filter
 
 import net.corda.workbench.commons.registry.Registry
 import net.corda.workbench.commons.taskManager.*
 import net.corda.workbench.cordaNetwork.events.Repo
-import net.corda.workbench.cordaNetwork.tasks.CreateNetworkTask
-import net.corda.workbench.cordaNetwork.tasks.CreateNodesTask
-import net.corda.workbench.cordaNetwork.tasks.RealContext
+import net.corda.workbench.cordaNetwork.tasks.*
 import net.corda.workbench.transactionBuilder.readFileAsText
 
 import org.http4k.core.*
@@ -21,6 +19,7 @@ import org.http4k.routing.bind
 import org.http4k.routing.path
 import org.http4k.routing.routes
 import org.json.JSONArray
+import org.json.JSONObject
 import java.io.FileInputStream
 
 class WebController2(private val registry: Registry) : HttpHandler {
@@ -43,25 +42,28 @@ class WebController2(private val registry: Registry) : HttpHandler {
 
                     },
 
+
                     "/networks/create" bind Method.GET to { req ->
                         val page = renderTemplate("createNetworkForm.html", emptyMap())
                         html(page)
 
                     },
+
                     "/networks/create" bind Method.POST to { req ->
                         val createRequest = unpackCreateNetworkForm(req)
-
                         val context = RealContext(createRequest.name)
                         val executor = buildExecutor(context)
+                        val scopedRegistry = registry.overide(context)
 
-                        executor.exec(CreateNetworkTask(registry.overide(context)))
-                        executor.exec(CreateNodesTask(registry.overide(context), createRequest.organisations))
+                        executor.exec(CreateNetworkTask(scopedRegistry))
+                        executor.exec(CreateNodesTask(scopedRegistry, createRequest.organisations))
 
                         val page = renderTemplate("networkCreated.md",
                                 mapOf("networkName" to createRequest.name))
                         html(page)
 
                     },
+
                     "/networks/{network}" bind Method.GET to { req ->
                         val network = req.path("network")!!
                         val nodes = repo.nodes(network)
@@ -70,103 +72,67 @@ class WebController2(private val registry: Registry) : HttpHandler {
                         html(page)
 
                     },
+
+                    "/networks/{network}/start" bind Method.POST to { req ->
+                        val network = req.path("network")!!
+                        val context = RealContext(network)
+                        val executor = buildExecutor(context)
+                        val scopedRegistry = registry.overide(context)
+
+                        if (!isNetworkRunning(network)) {
+                            val tasks = listOf(StopCordaNodesTask(scopedRegistry), StartCordaNodesTask(scopedRegistry))
+                            executor.exec(tasks)
+
+                            val page = renderTemplate("networkStarted.md",
+                                    mapOf("networkName" to network))
+                            html(page)
+
+                        } else {
+                            throw RuntimeException("network $network is already running")
+                        }
+
+
+                    },
+
+
+                    "/networks/{network}/status" bind Method.GET to { req ->
+                        val network = req.path("network")!!
+                        val context = RealContext(network)
+                        val messageSink = buildMessageSink(context)
+                        val executor = TaskExecutor(messageSink)
+                        val scopedRegistry = registry.overide(context)
+
+                        val status = NodesStatusTask(context).exec()
+
+                        val nodes = repo.nodes(network)
+                        val page = renderTemplate("status.md",
+                                mapOf("status" to status, "name" to network))
+                        html(page)
+                    },
+
+
                     "/style.css" bind Method.GET to {
                         val css = FileInputStream("src/main/resources/www/style.css").bufferedReader().use { it.readText() }
                         css(css)
+                    },
+
+                    "/ajax/test" bind Method.GET to {
+                        text("time is ${System.currentTimeMillis()}")
+
                     }
 
-
-//                    "{network}/{app}" bind Method.GET to { req ->
-//                        val network = req.path("network")!!
-//                        val appName = req.path("app")!!
-//                        val app = appRepo.findApp(network, appName)
-//                        if (app != null) {
-//                            val flows = FlowMetaDataExtractor("net.corda.workbench.refrigeratedTransportation").allFlows()
-//
-//                            val page = renderTemplate("appdetails.md",
-//                                    mapOf("app" to app, "flows" to flows))
-//                            html(page)
-//
-//                        } else {
-//                            notFound("App $appName doesn't exist")
-//                        }
-//                    },
-//                    "{network}/{app}/{flow}/{metadata}" bind Method.GET to { req ->
-//                        val network = req.path("network")!!
-//                        val appName = req.path("app")!!
-//                        val app = appRepo.findApp(network, appName)
-//
-//                        if (app != null) {
-//                            val flowName = req.path("flow")!!
-//
-//                            val params = FlowMetaDataExtractor("net.corda.workbench.refrigeratedTransportation")
-//                                    .primaryConstructorMetaData(flowName)
-//
-//                            val page = renderTemplate("metadata.md",
-//                                    mapOf("app" to app, "params" to params.entries))
-//                            html(page)
-//                        } else {
-//                            notFound("App $appName doesn't exist")
-//                        }
-//
-//                    },
-//                    "{network}/{app}/{flow}/run" bind Method.POST to { req ->
-//
-//
-//                        val flowName = req.path("flow")!!
-//
-//                        println(flowName)
-//
-//                        val shortFlowName = flowName.split(".").last()
-//                        println("short flow is ${shortFlowName}")
-//
-//
-//                        val nodeConfig = lookupNodeConfig(req)
-//                        val helper = RPCHelper("corda-local-network:${nodeConfig.port}")
-//                        helper.connect()
-//                        val client = helper.cordaRPCOps()!!
-//                        val resolver = RpcPartyResolver(helper)
-//
-//                        println("resolver: $resolver")
-//
-//                        // todo - fix to pass multiple packages
-//                        val reporter = StringReporter()
-//                        val runner = FlowRunner("net.corda.workbench.refrigeratedTransportation",
-//                                resolver,
-//                                LiveRpcCaller(client),
-//                                reporter)
-//
-//                        println("runner: $runner")
-//
-//
-//                        val data = req.formAsMap()
-//
-//
-//                        val d1 = HashMap<String, Any>()
-//                        for (x in data.entries) {
-//                            println(x.key + " - " + x.value.size)
-//
-//                            val value = x.value[0]
-//
-//                            if (StringUtil.isNumeric(value)) {
-//                                d1[x.key] = value!!.toInt()
-//                            } else {
-//                                d1[x.key] = value!!
-//                            }
-//                        }
-//
-//
-//                        for (x in d1.entries) {
-//                            println(x.key + " - " + x.value)
-//                        }
-//
-//
-//                        val result = runner.run<Any>(shortFlowName, d1)
-//
-//                        text(reporter.result)
-//
-//
-//                    }
+            ),
+            "/ajax" bind routes(
+                    "/networks/{network}/nodes/{node}/status" bind Method.GET to { req ->
+                        val network = req.path("network")!!
+                        val node = req.path("node")!!
+                        val context = RealContext(network)
+                        val messageSink = buildMessageSink(context)
+//                        val executor = TaskExecutor(messageSink)
+//                        val scopedRegistry = registry.overide(context)
+                        val status = NodeStatusTask(context,node).exec()
+                       json(status)
+                    }
 
             )
 
@@ -195,6 +161,14 @@ class WebController2(private val registry: Registry) : HttpHandler {
 
     }
 
+    private fun json(data: Map<String,Any>): Response {
+        return Response(Status.OK)
+                .body(JSONObject(data).toString(2))
+                .header("Content-Type", "application/json; charset=utf-8")
+
+    }
+
+
     private fun notFound(message: String): Response {
         return Response(Status.NOT_FOUND)
                 .body(message)
@@ -208,7 +182,7 @@ class WebController2(private val registry: Registry) : HttpHandler {
         // merge with layout.html.html
         val layout = FileInputStream("src/main/resources/www/layout.html").bufferedReader().use { it.readText() }
         val result = layout.replace("<!--BODYTEXT-->", html, false)
-        println(result)
+        //println(result)
         return result
     }
 
@@ -253,6 +227,18 @@ class WebController2(private val registry: Registry) : HttpHandler {
         return BlockingTasksExecutor(messageSink)
     }
 
+    private fun isNetworkRunning(network: String): Boolean {
+        // todo - should be moved to a method on the repo
+        return registry.retrieve(EventStore::class.java).retrieve(Filter(aggregateId = network))
+                .fold(false) { status, event ->
+                    when {
+                        event.type == "NetworkStarted" -> true
+                        event.type == "NetworkStopped" -> false
+                        else -> status
+                    }
+                }
+    }
+
 
     private fun unpackCreateNetworkForm(req: Request): CreateNetworkRequest {
         try {
@@ -261,6 +247,7 @@ class WebController2(private val registry: Registry) : HttpHandler {
             val name = params["networkName"]!!.single()!!
             val organisations = params["organisations"]!!
                     .single()!!
+                    .trim()
                     .split("\n")
                     .map { it.trim() }
 
