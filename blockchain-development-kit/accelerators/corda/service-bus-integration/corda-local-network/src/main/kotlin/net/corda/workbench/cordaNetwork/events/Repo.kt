@@ -3,6 +3,7 @@ package net.corda.workbench.cordaNetwork.events
 import net.corda.core.identity.CordaX500Name
 import net.corda.workbench.commons.event.EventStore
 import net.corda.workbench.commons.event.Filter
+import java.util.*
 
 class Repo(val es: EventStore) {
 
@@ -96,6 +97,30 @@ class Repo(val es: EventStore) {
                     }
                 }
     }
+
+    /**
+     * The list of deployed apps as recorded in the event store.
+     */
+    fun deployedCordapps(network: String) : List<CordaAppInfo> {
+        val apps = HashMap<String, CordaAppInfo>()
+
+        es.retrieve(Filter(aggregateId = network, type = "CordappDeployed"))
+                .forEach { ev ->
+                    val name = ev.payload["name"] as String
+                    val info = CordaAppInfo(name = name,
+                    size = ev.payload["size"] as Int,
+                            md5Hash = ev.payload["md5Hash"] as String,
+                            deployedAt = Date(ev.timestamp)
+
+                    )
+                    apps[name] = info
+                }
+
+        return apps
+                .values
+                .sortedBy { it.name }
+
+    }
 }
 
 data class NetworkInfo(val name: String, val status: String) {
@@ -119,3 +144,8 @@ data class NodeInfo(val x500Name: String) {
  * Information about a running node.
  */
 data class RunningNode(val network: String, val node: String, val pid: Long)
+
+/**
+ * Information about a deployed corda app
+ */
+data class CordaAppInfo(val name: String, val size: Int, val md5Hash: String, val deployedAt: Date = Date())

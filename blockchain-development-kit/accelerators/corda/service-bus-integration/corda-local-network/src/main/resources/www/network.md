@@ -4,8 +4,15 @@
 ## Nodes
 
 {{#nodes}}
-* {{organisation}}
+* [{{organisation}}](/web/networks/{{name}}/nodes/{{organisation}}/status)
 {{/nodes}}
+
+## CorDapps
+
+{{#cordapps}}
+* <strong>{{name}}</strong> (deployed at {{deployedAt}} with length {{size}} bytes and MD5 hash of {{md5Hash}})
+{{/cordapps}}
+
 
 ## Actions
 

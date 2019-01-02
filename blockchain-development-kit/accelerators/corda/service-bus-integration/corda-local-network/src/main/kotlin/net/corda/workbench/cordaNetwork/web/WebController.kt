@@ -67,8 +67,9 @@ class WebController2(private val registry: Registry) : HttpHandler {
                     "/networks/{network}" bind Method.GET to { req ->
                         val network = req.path("network")!!
                         val nodes = repo.nodes(network)
+                        val cordapps = repo.deployedCordapps(network)
                         val page = renderTemplate("network.md",
-                                mapOf("nodes" to nodes, "name" to network))
+                                mapOf("nodes" to nodes, "cordapps" to cordapps, "name" to network))
                         html(page)
 
                     },
@@ -96,7 +97,7 @@ class WebController2(private val registry: Registry) : HttpHandler {
                         // run task
                         val context = RealContext(network)
                         val executor = buildExecutor(context)
-                        val task = DeployCordaAppTask(context, working)
+                        val task = DeployCordaAppTask(registry.overide(context), working)
                         executor.exec(task)
 
                         val page = renderTemplate("deployAppResult.md",
@@ -151,6 +152,17 @@ class WebController2(private val registry: Registry) : HttpHandler {
                         val page = renderTemplate("nodeStatus.md",
                                 mapOf("status" to status, "networkName" to network))
                         html(page)
+                    },
+
+                    "/networks/{network}/nodes/{node}/log" bind Method.GET to { req ->
+                        val network = req.path("network")!!
+                        val node = req.path("node")!!
+                        val context = RealContext(network)
+                        val messageSink = buildMessageSink(context)
+
+                        val logs = NodeLogsTask(context, node).exec()
+                        text(logs)
+
                     },
 
 

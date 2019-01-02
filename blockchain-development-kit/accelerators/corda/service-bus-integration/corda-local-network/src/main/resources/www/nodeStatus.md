@@ -37,4 +37,6 @@ To connect via SSH, run the command below. The password is 'test'
 
 <button onclick="myFunction()">Copy</button>
 </div>
+
+The logs are [here](log)
  

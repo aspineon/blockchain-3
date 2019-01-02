@@ -52,4 +52,14 @@ object EventFactory {
                 aggregateId = network)
 
     }
+
+    fun CORDAPP_DEPLOYED(network: String, name: String, size: Int, md5Hash: String): Event {
+        return Event(type = "CordappDeployed",
+                aggregateId = network,
+                payload = mapOf("name" to name, "size" to size,
+                        "md5Hash" to md5Hash))
+
+    }
+
+
 }

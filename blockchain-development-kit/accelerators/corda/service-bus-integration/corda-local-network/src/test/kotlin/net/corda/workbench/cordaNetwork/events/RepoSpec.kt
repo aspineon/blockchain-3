@@ -93,6 +93,31 @@ object RepoSpec : Spek({
         }
 
 
+        it("should return list of deployed cordapps") {
+            es.storeEvent(EventFactory.CORDAPP_DEPLOYED("net1","app1.jar",123,"hash1"))
+            es.storeEvent(EventFactory.CORDAPP_DEPLOYED("net2","app1.jar",123,"hash1"))
+            es.storeEvent(EventFactory.CORDAPP_DEPLOYED("net1","app2.jar",999,"hash2"))
+            es.storeEvent(EventFactory.CORDAPP_DEPLOYED("net1","app1.jar",321,"hash3"))
+
+            assertThat(repo.deployedCordapps("net1").size, equalTo(2))
+            assertThat(repo.deployedCordapps("net1")[0].name, equalTo("app1.jar"))
+            assertThat(repo.deployedCordapps("net1")[0].size, equalTo(321))
+            assertThat(repo.deployedCordapps("net1")[0].md5Hash, equalTo("hash3"))
+            assertThat(repo.deployedCordapps("net1")[1].name, equalTo("app2.jar"))
+            assertThat(repo.deployedCordapps("net1")[1].size, equalTo(999))
+            assertThat(repo.deployedCordapps("net1")[1].md5Hash, equalTo("hash2"))
+
+            assertThat(repo.deployedCordapps("net2").size, equalTo(1))
+            assertThat(repo.deployedCordapps("net2")[0].name, equalTo("app1.jar"))
+            assertThat(repo.deployedCordapps("net2")[0].size, equalTo(123))
+            assertThat(repo.deployedCordapps("net2")[0].md5Hash, equalTo("hash1"))
+
+            assertThat(repo.deployedCordapps("netX").size, equalTo(0))
+
+        }
+
+
+
     }
 
 })
