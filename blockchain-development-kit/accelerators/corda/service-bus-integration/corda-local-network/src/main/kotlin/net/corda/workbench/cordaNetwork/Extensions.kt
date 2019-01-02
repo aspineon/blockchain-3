@@ -1,23 +1,11 @@
 package net.corda.workbench.transactionBuilder
 
 import com.github.mustachejava.DefaultMustacheFactory
-import io.javalin.Context
-import java.io.ByteArrayOutputStream
-import java.io.FileInputStream
-import java.io.OutputStreamWriter
-import java.io.StringReader
+import java.io.*
+import org.apache.commons.codec.binary.Hex
+import java.security.MessageDigest
 
-//
-//fun Context.booleanQueryParam(name: String, default: Boolean = false): Boolean {
-//    val param = this.queryParam(name)
-//    if (param != null) {
-//        if (param.equals("Y", true)) return true
-//        if (param.equals("true", true)) return true
-//        return false
-//    }
-//    return default
-//
-//}
+
 
 
 fun readFileAsText(path: String, substitutions : Map<String,Any?> = emptyMap()): String {
@@ -36,4 +24,21 @@ fun readFileAsText(path: String, substitutions : Map<String,Any?> = emptyMap()):
     else {
         return raw;
     }
+}
+
+
+fun File.copyInputStreamToFile(inputStream: InputStream) {
+    inputStream.use { input ->
+        this.outputStream().use { fileOut ->
+            input.copyTo(fileOut)
+        }
+    }
+}
+
+fun File.md5Hash() : String {
+    val messageDigest = MessageDigest.getInstance("MD5")
+    messageDigest.reset()
+    messageDigest.update(this.readBytes())
+    val resultByte = messageDigest.digest()
+    return String(Hex.encodeHex(resultByte))
 }

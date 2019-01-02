@@ -28,6 +28,7 @@ console.log("running poll");
 </script>
 
 
+
 # {{networkName}}
 
 {{#isRunning}}
@@ -41,8 +42,8 @@ This network is not running. [Start All Nodes](/web/networks/{{networkName}}/sta
 
 {{#nodesStatus}}
 ### {{name}}
-socketTest {{socketTest}}</br>
-sshConnectionTest {{sshConnectionTest}}</br>
+socketTest <span class="{{socketTest}}">{{socketTest}}</span></br>
+sshConnectionTest <span class="{{sshConnectionTest}}">{{sshConnectionTest}}</span></br>
 [Full Status](/web/networks/{{networkName}}/nodes/{{name}}/status)
 {{/nodesStatus}}
 

@@ -10,6 +10,8 @@ import net.corda.workbench.commons.registry.Registry
 import net.corda.workbench.commons.taskManager.*
 import net.corda.workbench.cordaNetwork.events.Repo
 import net.corda.workbench.cordaNetwork.tasks.*
+import net.corda.workbench.transactionBuilder.copyInputStreamToFile
+import net.corda.workbench.transactionBuilder.md5Hash
 import net.corda.workbench.transactionBuilder.readFileAsText
 
 import org.http4k.core.*
@@ -18,6 +20,7 @@ import org.http4k.routing.bind
 import org.http4k.routing.path
 import org.http4k.routing.routes
 import org.json.JSONObject
+import java.io.File
 import java.io.FileInputStream
 
 class WebController2(private val registry: Registry) : HttpHandler {
@@ -69,6 +72,41 @@ class WebController2(private val registry: Registry) : HttpHandler {
                         html(page)
 
                     },
+
+                    "/networks/{network}/deploy" bind Method.GET to { req ->
+                        val network = req.path("network")!!
+                        val page = renderTemplate("deployAppForm.md",
+                                mapOf("networkName" to network))
+                        html(page)
+                    },
+
+                    "/networks/{network}/deploy" bind Method.POST to { req ->
+                        val network = req.path("network")!!
+
+                        // unpack file
+                        val receivedForm = MultipartFormBody.from(req)
+                        val file = receivedForm.files("cordapp")
+                        val filename = file.get(0).filename
+                        val working = File(filename)
+                        working.copyInputStreamToFile(file.get(0).content)
+
+                        val md5Hash = working.md5Hash()
+                        val byteCount = working.length()
+
+                        // run task
+                        val context = RealContext(network)
+                        val executor = buildExecutor(context)
+                        val task = DeployCordaAppTask(context, working)
+                        executor.exec(task)
+
+                        val page = renderTemplate("deployAppResult.md",
+                                mapOf("networkName" to network,
+                                        "fileName" to filename,
+                                        "length" to byteCount,
+                                        "md5Hash" to md5Hash))
+                        html(page)
+                    },
+
 
                     "/networks/{network}/start" bind Method.POST to { req ->
                         doStartNetwork(req)

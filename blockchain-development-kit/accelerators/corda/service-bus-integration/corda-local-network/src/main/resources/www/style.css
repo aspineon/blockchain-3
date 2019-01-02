@@ -948,3 +948,7 @@ footer a:hover {
 		content: none
 	}
 }
+
+
+span.Passed { background-color  : rgba(0, 255, 0, 0.4) }
+span.Failed { background-color	: rgba(255, 0, 0, 0.4) }

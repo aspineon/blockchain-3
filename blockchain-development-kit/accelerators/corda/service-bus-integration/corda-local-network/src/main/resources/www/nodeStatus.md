@@ -20,9 +20,9 @@ function myFunction() {
 # Node Status 
 
 {{#status}}
-### Node: <strong>{{name}}</strong>
-socketTest {{socketTest}}</br>
-sshConnectionTest {{sshConnectionTest}}</br>
+## {{name}} on {{networkName}}
+socketTest <span class="{{socketTest}}">{{socketTest}}</span></br>
+sshConnectionTest <span class="{{sshConnectionTest}}">{{sshConnectionTest}}</span></br>
 rpcPort {{rpcPort}}</br>
 sshPort {{sshPort}}</br>
 legalName {{legalName}} </br>
