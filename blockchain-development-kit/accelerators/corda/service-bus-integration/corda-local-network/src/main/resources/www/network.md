@@ -10,4 +10,6 @@
 ## Actions
 
 * [Status](/web/networks/{{name}}/status)
-* [Start All Nodes](/)
+* [Start All Nodes](/web/networks/{{name}}/start)
+* [Stop All Nodes](/web/networks/{{name}}/stop)
+

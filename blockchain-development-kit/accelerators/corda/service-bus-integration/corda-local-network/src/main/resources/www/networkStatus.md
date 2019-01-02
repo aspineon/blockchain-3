@@ -28,14 +28,23 @@ console.log("running poll");
 </script>
 
 
+# {{networkName}}
 
-# Status {{name}}
+{{#isRunning}}
+This network is running. [Stop All Nodes](/web/networks/{{networkName}}/stop)
+{{/isRunning}}
+{{^isRunning}}
+This network is not running. [Start All Nodes](/web/networks/{{networkName}}/start)
+{{/isRunning}}
 
-{{#status}}
-## Nodes {{node}}
+## Nodes
+
+{{#nodesStatus}}
+### {{name}}
 socketTest {{socketTest}}</br>
 sshConnectionTest {{sshConnectionTest}}</br>
+[Full Status](/web/networks/{{networkName}}/nodes/{{name}}/status)
+{{/nodesStatus}}
 
-{{/status}}
+<!--<span id="123">click me</span>-->
 
-<span id="123">click me</span>

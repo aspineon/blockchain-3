@@ -24,7 +24,7 @@ class EventsController(private val registry: Registry) {
                 ApiBuilder.get("tail") { ctx ->
                     val allEvents = es.retrieve()
                     if (allEvents.size > 20) {
-                        ctx.json(allEvents.subList(allEvents.size - 20, allEvents.size).reversed())
+                        ctx.json(allEvents.reversed().subList(0, 20))
                     } else {
                         ctx.json(allEvents.reversed())
                     }

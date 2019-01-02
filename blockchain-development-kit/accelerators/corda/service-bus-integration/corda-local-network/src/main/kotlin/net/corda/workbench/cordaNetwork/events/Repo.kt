@@ -81,6 +81,21 @@ class Repo(val es: EventStore) {
                 .sortedBy { "${it.network}:${it.node}" }
 
     }
+
+    /**
+     * Is the network running, based on the record of the events. Note that
+     * this may not reflect the actual status of the processes
+     */
+    fun isNetworkRunning(network: String): Boolean {
+        return es.retrieve(Filter(aggregateId = network))
+                .fold(false) { status, event ->
+                    when {
+                        event.type == "NetworkStarted" -> true
+                        event.type == "NetworkStopped" -> false
+                        else -> status
+                    }
+                }
+    }
 }
 
 data class NetworkInfo(val name: String, val status: String) {

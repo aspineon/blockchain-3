@@ -81,6 +81,18 @@ object RepoSpec : Spek({
             assertThat(nodes[0], equalTo(RunningNode("net1", "alice", 999L)))
         }
 
+
+        it("should return running status of the network") {
+            es.storeEvent(EventFactory.NETWORK_STARTED("net1"))
+            es.storeEvent(EventFactory.NETWORK_STOPPED("net1"))
+            es.storeEvent(EventFactory.NETWORK_STARTED("net2"))
+
+            assertThat(repo.isNetworkRunning("net1"), equalTo(false))
+            assertThat(repo.isNetworkRunning("net2"), equalTo(true))
+            assertThat(repo.isNetworkRunning("netX"), equalTo(false))
+        }
+
+
     }
 
 })

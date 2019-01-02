@@ -1,6 +1,5 @@
 package net.corda.workbench.cordaNetwork.tasks
 
-import net.corda.workbench.commons.event.EventStore
 import net.corda.workbench.commons.taskManager.BaseTask
 import net.corda.workbench.commons.taskManager.ExecutionContext
 import net.corda.workbench.commons.taskManager.TaskContext
@@ -14,13 +13,12 @@ import net.corda.workbench.commons.registry.Registry
  *   'O=ContosoLtd,L=Seatle,C=US' and builds a full set of node configs using the
  *   conventions passed in the context.
  */
-class ConfigBuilderTask(registry: Registry, private val parties: List<String>) : BaseTask() {
+class ConfigBuilderTask(registry: Registry, private val parties: List<String>, private val startPort: Int = 10000) : BaseTask() {
     val ctx = registry.retrieve(TaskContext::class.java)
-    val es = registry.retrieve(EventStore::class.java)
 
     override fun exec(executionContext: ExecutionContext) {
         File(ctx.workingDir).mkdirs()
-        var basePort = 10000
+        var basePort = startPort
         for (party in parties) {
             val x500 = X500Name(party)
 

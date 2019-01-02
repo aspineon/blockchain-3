@@ -5,7 +5,6 @@ import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.util.options.MutableDataSet
 import com.vladsch.flexmark.parser.Parser
 import net.corda.workbench.commons.event.EventStore
-import net.corda.workbench.commons.event.Filter
 
 import net.corda.workbench.commons.registry.Registry
 import net.corda.workbench.commons.taskManager.*
@@ -18,7 +17,6 @@ import org.http4k.core.body.formAsMap
 import org.http4k.routing.bind
 import org.http4k.routing.path
 import org.http4k.routing.routes
-import org.json.JSONArray
 import org.json.JSONObject
 import java.io.FileInputStream
 
@@ -41,7 +39,6 @@ class WebController2(private val registry: Registry) : HttpHandler {
                         html(page)
 
                     },
-
 
                     "/networks/create" bind Method.GET to { req ->
                         val page = renderTemplate("createNetworkForm.html", emptyMap())
@@ -74,39 +71,47 @@ class WebController2(private val registry: Registry) : HttpHandler {
                     },
 
                     "/networks/{network}/start" bind Method.POST to { req ->
-                        val network = req.path("network")!!
-                        val context = RealContext(network)
-                        val executor = buildExecutor(context)
-                        val scopedRegistry = registry.overide(context)
+                        doStartNetwork(req)
+                    },
+                    "/networks/{network}/start" bind Method.GET to { req ->
+                        // allow GET form for easy hyperlinks
+                        doStartNetwork(req)
+                    },
 
-                        if (!isNetworkRunning(network)) {
-                            val tasks = listOf(StopCordaNodesTask(scopedRegistry), StartCordaNodesTask(scopedRegistry))
-                            executor.exec(tasks)
-
-                            val page = renderTemplate("networkStarted.md",
-                                    mapOf("networkName" to network))
-                            html(page)
-
-                        } else {
-                            throw RuntimeException("network $network is already running")
-                        }
-
-
+                    "/networks/{network}/stop" bind Method.POST to { req ->
+                        doStopNetwork(req)
+                    },
+                    "/networks/{network}/stop" bind Method.GET to { req ->
+                        // allow GET form for easy hyperlinks
+                        doStopNetwork(req)
                     },
 
 
                     "/networks/{network}/status" bind Method.GET to { req ->
                         val network = req.path("network")!!
                         val context = RealContext(network)
+                        //val messageSink = buildMessageSink(context)
+
+                        val nodesStatus = NodesInfoTask(context).exec().sortedBy { it.name }
+                        val isRunning = repo.isNetworkRunning(network)
+
+                        val page = renderTemplate("networkStatus.md",
+                                mapOf("nodesStatus" to nodesStatus,
+                                        "isRunning" to isRunning,
+                                        "networkName" to network))
+                        html(page)
+                    },
+
+                    "/networks/{network}/nodes/{node}/status" bind Method.GET to { req ->
+                        val network = req.path("network")!!
+                        val node = req.path("node")!!
+                        val context = RealContext(network)
                         val messageSink = buildMessageSink(context)
-                        val executor = TaskExecutor(messageSink)
-                        val scopedRegistry = registry.overide(context)
 
-                        val status = NodesStatusTask(context).exec()
+                        val status = NodeInfoTask(context, node).exec()
 
-                        val nodes = repo.nodes(network)
-                        val page = renderTemplate("status.md",
-                                mapOf("status" to status, "name" to network))
+                        val page = renderTemplate("nodeStatus.md",
+                                mapOf("status" to status, "networkName" to network))
                         html(page)
                     },
 
@@ -130,13 +135,45 @@ class WebController2(private val registry: Registry) : HttpHandler {
                         val messageSink = buildMessageSink(context)
 //                        val executor = TaskExecutor(messageSink)
 //                        val scopedRegistry = registry.overide(context)
-                        val status = NodeStatusTask(context,node).exec()
-                       json(status)
+                        val status = NodeStatusTask(context, node).exec()
+                        json(status)
                     }
 
             )
 
     )
+
+    private fun doStartNetwork(req: Request): Response {
+        val network = req.path("network")!!
+        val context = RealContext(network)
+        val executor = buildExecutor(context)
+        val scopedRegistry = registry.overide(context)
+
+        return if (!repo.isNetworkRunning(network)) {
+            val tasks = listOf(StopCordaNodesTask(scopedRegistry), StartCordaNodesTask(scopedRegistry))
+            executor.exec(tasks)
+
+            val page = renderTemplate("networkStarted.md",
+                    mapOf("networkName" to network))
+            html(page)
+
+        } else {
+            throw RuntimeException("network $network is already running")
+        }
+    }
+
+    private fun doStopNetwork(req: Request): Response {
+        val network = req.path("network")!!
+        val context = RealContext(network)
+        val executor = buildExecutor(context)
+        val scopedRegistry = registry.overide(context)
+
+        executor.exec(StopCordaNodesTask(scopedRegistry))
+
+        val page = renderTemplate("networkStopped.md",
+                mapOf("networkName" to network))
+        return html(page)
+    }
 
     override fun invoke(p1: Request) = routes(p1)
 
@@ -161,7 +198,7 @@ class WebController2(private val registry: Registry) : HttpHandler {
 
     }
 
-    private fun json(data: Map<String,Any>): Response {
+    private fun json(data: Map<String, Any>): Response {
         return Response(Status.OK)
                 .body(JSONObject(data).toString(2))
                 .header("Content-Type", "application/json; charset=utf-8")
@@ -225,18 +262,6 @@ class WebController2(private val registry: Registry) : HttpHandler {
     private fun buildExecutor(context: TaskContext): BlockingTasksExecutor {
         val messageSink = buildMessageSink(context)
         return BlockingTasksExecutor(messageSink)
-    }
-
-    private fun isNetworkRunning(network: String): Boolean {
-        // todo - should be moved to a method on the repo
-        return registry.retrieve(EventStore::class.java).retrieve(Filter(aggregateId = network))
-                .fold(false) { status, event ->
-                    when {
-                        event.type == "NetworkStarted" -> true
-                        event.type == "NetworkStopped" -> false
-                        else -> status
-                    }
-                }
     }
 
 

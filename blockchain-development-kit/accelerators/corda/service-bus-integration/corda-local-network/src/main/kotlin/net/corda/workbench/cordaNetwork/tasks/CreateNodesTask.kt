@@ -5,9 +5,11 @@ import net.corda.workbench.commons.registry.Registry
 import net.corda.workbench.commons.taskManager.BaseTask
 import net.corda.workbench.commons.taskManager.ExecutionContext
 import net.corda.workbench.commons.taskManager.TaskContext
+import net.corda.workbench.cordaNetwork.events.Repo
 import net.corda.workbench.transactionBuilder.events.EventFactory
 import sun.security.x509.X500Name
 import java.io.IOException
+import java.lang.RuntimeException
 
 /**
  * Combine all the actions for creating nodes for a network
@@ -17,13 +19,30 @@ class CreateNodesTask(private val registry: Registry, private val parties: List<
     private val ctx = registry.retrieve(TaskContext::class.java)!!
     private val es = registry.retrieve(EventStore::class.java)!!
 
+
     override fun exec(executionContext: ExecutionContext) {
+
+        // rather crude test for existing nodes so we don't allocate the same ports
+        // twice
+        val repo = Repo(es)
+        var nodeCount = 0
+        for (network in repo.networks()) {
+            try {
+                nodeCount += repo.nodes(network.name).size
+            }
+            catch (ignored : Exception){}
+        }
+        if (nodeCount + parties.size > 100) {
+            throw RuntimeException("The limit of no more than 100 nodes across all network has been exceeded")
+        }
 
         // allow for partial names etc
         val standardisedParties = parties.map { standardise(it) }
 
-        ConfigBuilderTask(registry, standardisedParties).exec(executionContext)
-        NetworkBootstrapperTask(ctx).exec(executionContext)
+        ConfigBuilderTask(registry, standardisedParties, 10000 + nodeCount * 10)
+                .exec(executionContext)
+        NetworkBootstrapperTask(ctx)
+                .exec(executionContext)
 
         es.storeEvent(EventFactory.NODES_CREATED(ctx.networkName, standardisedParties))
 

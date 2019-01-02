@@ -95,7 +95,7 @@ class ApiController(private val registry: Registry) {
                 ApiBuilder.get("status") { ctx ->
                     val networkName = ctx.param("networkName")!!
                     val context = RealContext(networkName)
-                    val status = NodesStatusTask(context).exec()
+                    val status = NodesInfoTask(context).exec()
                     ctx.json(status)
                 }
 
