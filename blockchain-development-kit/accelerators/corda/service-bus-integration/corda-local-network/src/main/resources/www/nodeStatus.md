@@ -20,7 +20,7 @@ function myFunction() {
 # Node Status 
 
 {{#status}}
-## {{name}} on {{networkName}}
+## {{name}} on [{{networkName}}](/web/networks/{{networkName}})
 socketTest <span class="{{socketTest}}">{{socketTest}}</span></br>
 sshConnectionTest <span class="{{sshConnectionTest}}">{{sshConnectionTest}}</span></br>
 rpcPort {{rpcPort}}</br>
@@ -33,7 +33,7 @@ To connect via SSH, run the command below. The password is 'test'
 <input type="text" 
         id="sshcommand" 
         style="width:450px"
-        value="ssh -p {{#status}}{{sshPort}}{{/status}} localhost -l user1 -o UserKnownHostsFile=/dev/null">
+        value="ssh -p {{#status}}{{sshPort}}{{/status}} {{#config}}{{publicAddress}}{{/config}} -l user1 -o UserKnownHostsFile=/dev/null">
 
 <button onclick="myFunction()">Copy</button>
 </div>

@@ -6,4 +6,4 @@ import java.net.InetAddress
  * The holder for any application wide configuration / settings
  */
 
-data class AppConfig(val publicAddress: InetAddress)
+data class AppConfig(val publicAddress: String = "corda-local-network")

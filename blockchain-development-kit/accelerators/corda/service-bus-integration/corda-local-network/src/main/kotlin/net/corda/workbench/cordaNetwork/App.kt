@@ -18,8 +18,11 @@ fun main(args: Array<String>) {
     val dataDir = System.getProperty("user.home") + "/.corda-local-network/events"
     val es = FileEventStore().load(dataDir)
     val repo = Repo(es)
-    val appConfig = AppConfig(publicAddress = InetAddress.getLocalHost())
-    registry.store(es).store(ProcessManager()).store(repo)
+
+    val publicAddress: String = System.getenv("PUBLIC_ADDRESS") ?: "localhost"
+    val appConfig = AppConfig(publicAddress = publicAddress)
+
+    registry.store(es).store(ProcessManager()).store(repo).store(appConfig)
 
 
 

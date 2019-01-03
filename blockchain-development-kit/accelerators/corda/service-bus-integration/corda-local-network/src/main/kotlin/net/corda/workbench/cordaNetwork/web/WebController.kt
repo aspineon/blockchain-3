@@ -9,6 +9,7 @@ import net.corda.workbench.commons.processManager.ProcessManager
 
 import net.corda.workbench.commons.registry.Registry
 import net.corda.workbench.commons.taskManager.*
+import net.corda.workbench.cordaNetwork.AppConfig
 import net.corda.workbench.cordaNetwork.events.Repo
 import net.corda.workbench.cordaNetwork.tasks.*
 import net.corda.workbench.transactionBuilder.copyInputStreamToFile
@@ -28,6 +29,7 @@ import java.util.*
 class WebController2(private val registry: Registry) : HttpHandler {
     private val repo = Repo(registry.retrieve(EventStore::class.java))
     private val processManager = registry.retrieve(ProcessManager::class.java)
+    private val config = registry.retrieve(AppConfig::class.java)
 
 
     // todo - should be injected in
@@ -157,12 +159,11 @@ class WebController2(private val registry: Registry) : HttpHandler {
                         val history = repo.all()
                                 .reversed()
                                 .map {
-                                    mapOf("executionId" to it.executionId.toString().substring(0,8),
-                                    "taskId" to it.taskId.toString().substring(0,8),
+                                    mapOf("executionId" to it.executionId.toString().substring(0, 8),
+                                            "taskId" to it.taskId.toString().substring(0, 8),
                                             "timestamp" to Date(it.timestamp),
                                             "message" to it.message,
-                                            "executionColour" to it.executionId.toString().substring(0,6))
-
+                                            "executionColour" to it.executionId.toString().substring(0, 6))
 
 
                                 }
@@ -181,7 +182,7 @@ class WebController2(private val registry: Registry) : HttpHandler {
                         val status = NodeInfoTask(context, node).exec()
 
                         val page = renderTemplate("nodeStatus.md",
-                                mapOf("status" to status, "networkName" to network))
+                                mapOf("status" to status, "networkName" to network, "config" to config))
                         html(page)
                     },
 
