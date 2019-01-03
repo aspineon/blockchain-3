@@ -9,3 +9,7 @@ Run standalone networks and deploy corDapps to all nodes.
 
 Create a [new network](/web/networks/create) 
 
+## Processes
+
+See what processes are [running](/web/processes)
+

@@ -11,15 +11,27 @@ import java.nio.file.Paths
  */
 class NodeLogsTask(val ctx: TaskContext, nodeName: String) : DataTask<String> {
 
-    val standardiseNodeName = standardiseNodeName(nodeName)
+    private val standardiseNodeName = standardiseNodeName(nodeName)
 
     override fun exec(executionContext: ExecutionContext): String {
 
         val directory = Paths.get(ctx.workingDir, standardiseNodeName, "logs").normalize().toFile()
+
+        // this pattern works locally
         directory.list().forEach {
             if (it.endsWith(".local.log")) {
+                println ("Using $it logfile")
                 val logFilePath = Paths.get(ctx.workingDir, standardiseNodeName, "logs", it).normalize()
+                val log = logFilePath.toFile()
+                return log.readText()
+            }
+        }
 
+        // this pattern works under docker
+        directory.list().forEach {
+            if (it != "node-info-gen.log") {
+                println ("Using $it logfile")
+                val logFilePath = Paths.get(ctx.workingDir, standardiseNodeName, "logs", it).normalize()
                 val log = logFilePath.toFile()
                 return log.readText()
             }

@@ -5,6 +5,7 @@ import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.util.options.MutableDataSet
 import com.vladsch.flexmark.parser.Parser
 import net.corda.workbench.commons.event.EventStore
+import net.corda.workbench.commons.processManager.ProcessManager
 
 import net.corda.workbench.commons.registry.Registry
 import net.corda.workbench.commons.taskManager.*
@@ -22,9 +23,12 @@ import org.http4k.routing.routes
 import org.json.JSONObject
 import java.io.File
 import java.io.FileInputStream
+import java.util.*
 
 class WebController2(private val registry: Registry) : HttpHandler {
-    val repo = Repo(registry.retrieve(EventStore::class.java))
+    private val repo = Repo(registry.retrieve(EventStore::class.java))
+    private val processManager = registry.retrieve(ProcessManager::class.java)
+
 
     // todo - should be injected in
     private val taskRepos = HashMap<String, TaskRepo>()
@@ -141,6 +145,33 @@ class WebController2(private val registry: Registry) : HttpHandler {
                         html(page)
                     },
 
+                    "/networks/{network}/tasks/history" bind Method.GET to { req ->
+                        val network = req.path("network")!!
+                        val context = RealContext(network)
+                        val repo = taskRepos.getOrPut(context.networkName) {
+                            SimpleTaskRepo("${context.workingDir}/tasks")
+                        }
+
+                        //<div class="logline">{{executionId}} {{taskId}} {{timestamp}} {{message}}</div>
+
+                        val history = repo.all()
+                                .reversed()
+                                .map {
+                                    mapOf("executionId" to it.executionId.toString().substring(0,8),
+                                    "taskId" to it.taskId.toString().substring(0,8),
+                                            "timestamp" to Date(it.timestamp),
+                                            "message" to it.message,
+                                            "executionColour" to it.executionId.toString().substring(0,6))
+
+
+
+                                }
+                        val page = renderTemplate("taskLog.md",
+                                mapOf("history" to history,
+                                        "networkName" to network))
+                        html(page)
+                    },
+
                     "/networks/{network}/nodes/{node}/status" bind Method.GET to { req ->
                         val network = req.path("network")!!
                         val node = req.path("node")!!
@@ -162,6 +193,13 @@ class WebController2(private val registry: Registry) : HttpHandler {
 
                         val logs = NodeLogsTask(context, node).exec()
                         text(logs)
+                    },
+
+                    "/processes" bind Method.GET to { req ->
+                        processManager.allProcesses()
+                        val page = renderTemplate("processList.md",
+                                mapOf("processes" to processManager.allProcesses()))
+                        html(page)
 
                     },
 

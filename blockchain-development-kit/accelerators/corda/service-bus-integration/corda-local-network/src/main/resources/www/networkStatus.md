@@ -29,7 +29,7 @@ console.log("running poll");
 
 
 
-# {{networkName}}
+# [{{networkName}}](/web/networks/{{networkName}})
 
 {{#isRunning}}
 This network is running. [Stop All Nodes](/web/networks/{{networkName}}/stop)
