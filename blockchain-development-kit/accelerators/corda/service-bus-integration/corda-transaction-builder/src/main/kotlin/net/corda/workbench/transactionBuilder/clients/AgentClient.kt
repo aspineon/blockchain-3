@@ -44,6 +44,8 @@ interface AgentClient {
 
     fun flowMetaData(app: String, flow: String): Map<String, Any>
 
+    fun runFlow(app: String, flow: String, data: Map<String, Any?>): Any?
+
 }
 
 interface AgentClientFactory {
@@ -111,6 +113,26 @@ class AgentQueryImpl(private val baseUrl: String) : AgentClient {
         } else {
             throw RuntimeException("$request failed with $resp")
         }
+    }
+
+    override fun runFlow(app: String, flow: String, data: Map<String, Any?>): Any? {
+        val json = JSONObject(data).toString(2)
+        println(json)
+
+        val request = Request(Method.POST, "$baseUrl/$app/flows/$flow/run")
+                .body(json)
+
+        val client = ApacheClient()
+        val resp = client(request)
+
+        if (resp.status.successful) {
+            val json = JSONObject(resp.body.toString())
+            return JSONObject(json).toMap()
+        } else {
+            throw RuntimeException("$request failed with $resp")
+        }
+
+        //return null
     }
 
 }

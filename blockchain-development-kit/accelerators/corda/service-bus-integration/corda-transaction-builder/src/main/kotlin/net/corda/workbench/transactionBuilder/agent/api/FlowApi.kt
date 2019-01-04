@@ -35,7 +35,6 @@ class FlowApi(private val registry: Registry) {
                         ApiBuilder.post("run") { ctx ->
                             val nodeConfig = lookupNodeConfig(ctx)
 
-
                             val scannablePackages = scannablePackages(ctx)
                             if (scannablePackages.isEmpty()){
                                 throw RuntimeException("cannot locate the scannablePackages for ${ctx.param("app")}")

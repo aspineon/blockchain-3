@@ -3,6 +3,7 @@ package net.corda.workbench.transactionBuilder.app
 import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.util.options.MutableDataSet
+import net.corda.core.contracts.UniqueIdentifier
 import net.corda.workbench.commons.event.EventStore
 import net.corda.workbench.commons.registry.Registry
 import net.corda.workbench.commons.taskManager.*
@@ -16,6 +17,7 @@ import net.corda.workbench.transactionBuilder.tasks.RealContext
 import net.corda.workbench.transactionBuilder.tasks.StartAgentTask
 
 import org.http4k.core.*
+import org.http4k.core.body.form
 import org.http4k.core.body.formAsMap
 import org.http4k.routing.RoutingHttpHandler
 import org.http4k.routing.bind
@@ -27,7 +29,7 @@ import org.json.JSONObject
 import org.slf4j.Logger
 import java.io.File
 import java.io.FileInputStream
-import java.util.HashMap
+import java.util.*
 
 class WebController2(private val registry: Registry) : HttpHandler {
     private val repo = Repo(registry.retrieve(EventStore::class.java))
@@ -37,6 +39,10 @@ class WebController2(private val registry: Registry) : HttpHandler {
     private val localNetworkClient = registry.retrieve(LocalNetworkClient::class.java)
     private val agentClientFactory = registry.retrieve(AgentClientFactory::class.java)
     private val es = registry.retrieve(EventStore::class.java)
+
+    // hardcoded to a single app for now
+    //private val appName = "refrigerated-transportation"
+    private val appName = "chat"
 
 
     // todo - should be injected in
@@ -130,8 +136,9 @@ class WebController2(private val registry: Registry) : HttpHandler {
                                 val page = renderTemplate("networkNode.md",
                                         mapOf("networkName" to network,
                                                 "nodeName" to node,
-                                                "flows" to agentClient.listFlows("refrigerated-transportation"),
-                                                "states" to agentClient.listStates("refrigerated-transportation")
+                                                "appName" to appName,
+                                                "flows" to agentClient.listFlows(appName),
+                                                "states" to agentClient.listStates(appName)
 
                                         ))
                                 html(page)
@@ -143,7 +150,7 @@ class WebController2(private val registry: Registry) : HttpHandler {
                                 val app = req.path("app")!!
                                 val agentClient = agentClientFactory.createClient(network, node)
 
-                                val query = agentClient.queryState("refrigerated-transportation", state)
+                                val query = agentClient.queryState(appName, state)
                                 json(JSONArray(query))
 //
                             },
@@ -154,8 +161,58 @@ class WebController2(private val registry: Registry) : HttpHandler {
                                 val app = req.path("app")!!
                                 val agentClient = agentClientFactory.createClient(network, node)
 
-                                val query = agentClient.flowMetaData("refrigerated-transportation", flow)
-                                json(JSONObject(query).toMap())
+                                val query = agentClient.flowMetaData(appName, flow)
+                                println(query)
+
+                                val metadata = JSONObject(query).toMap()
+
+                                val page = renderTemplate("flowForm.md",
+                                        mapOf("networkName" to network,
+                                                "nodeName" to node,
+                                                "appName" to app,
+                                                "flowName" to flow,
+                                                "metadata" to metadata.entries
+                                        ))
+                                html(page)
+
+
+                                //j//son(JSONObject(query).toMap())
+//
+                            },
+                            "/{network}/nodes/{node}/apps/{app}/flows/{flow}/run" bind Method.POST to { req ->
+                                val network = req.path("network")!!
+                                val node = req.path("node")!!
+                                val flow = req.path("flow")!!
+                                val app = req.path("app")!!
+
+
+
+
+
+
+//                                val payload = req.body.stream.bufferedReader().use { it.readText() }
+//                                println ("payload is \n $payload")
+//                                val json = JSONObject(payload)
+//                                println(json.toString())
+                                val agentClient = agentClientFactory.createClient(network, node)
+
+
+
+                                val metadata = agentClient.flowMetaData(appName, flow)
+                                val remapper = Remapper(metadata)
+
+
+                                val rawData = req.formAsMap().mapValues { remapper.remap(it.key,it.value[0]!!)}
+                                println(rawData)
+
+
+
+                                val result = agentClient.runFlow(app,flow,rawData)
+
+                               json(result as Map<String,Any>)
+
+
+                                //j//son(JSONObject(query).toMap())
 //
                             }
 
@@ -272,6 +329,22 @@ class WebController2(private val registry: Registry) : HttpHandler {
 
 
     data class CreateNetworkRequest(val name: String, val organisations: List<String>)
+
+    class Remapper(xx : Map<String,Any>){
+        val metadata =  xx as Map<String,Map<String,Any>>
+
+        fun remap(key: String, value : String) : Any {
+            val expectedType = metadata[key]!!["type"] as String
+            if (expectedType == "Int"){
+                return value.toInt()
+            }
+            if (expectedType == "UniqueIdentifier"){
+                return UniqueIdentifier(null, UUID.fromString(value))
+            }
+            return value
+
+        }
+    }
 
 
 }

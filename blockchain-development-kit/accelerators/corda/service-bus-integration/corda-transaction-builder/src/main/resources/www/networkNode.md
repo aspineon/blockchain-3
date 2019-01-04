@@ -8,7 +8,7 @@ Explore {{nodeName}}
 The following flows are available 
 
 {{#flows}}
-* [{{.}}](/web/networks/{{networkName}}/nodes/{{nodeName}}/apps/refrigerated-transportation/flows/{{.}}/metadata)
+* [{{.}}](/web/networks/{{networkName}}/nodes/{{nodeName}}/apps/{{appName}}/flows/{{.}}/metadata)
 {{/flows}}
 
 ## States
@@ -16,7 +16,7 @@ The following flows are available
 The following states are available 
 
 {{#states}}
-* [{{.}}](/web/networks/{{networkName}}/nodes/{{nodeName}}/apps/refrigerated-transportation/states/{{.}}/all)
+* [{{.}}](/web/networks/{{networkName}}/nodes/{{nodeName}}/apps/{{appName}}/states/{{.}}/all)
 {{/states}}
 
 
