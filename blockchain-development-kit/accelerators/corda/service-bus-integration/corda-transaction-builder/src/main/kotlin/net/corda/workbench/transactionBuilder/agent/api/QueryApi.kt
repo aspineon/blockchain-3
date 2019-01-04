@@ -1,4 +1,4 @@
-package net.corda.workbench.transactionBuilder.api
+package net.corda.workbench.transactionBuilder.agent.api
 
 import io.javalin.ApiBuilder
 import io.javalin.Context
@@ -28,6 +28,7 @@ class QueryApi (private val registry: Registry){
                     app.routes {
                         ApiBuilder.get(":state") { ctx ->
                             val config = lookupNodeConfig(ctx)
+                            println(config)
                             val clazzName = ctx.param("state")!!
                             val clazz = lookupClass<ContractState>(clazzName)
 

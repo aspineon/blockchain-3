@@ -20,7 +20,7 @@ class StartAgentTask(registry: Registry) : BaseTask() {
 
     override fun exec(executionContext: ExecutionContext) {
 
-        executionContext.messageStream.invoke("Starting agent for: ${ctx.networkName}")
+        executionContext.messageSink.invoke("Starting agent for: ${ctx.networkName}")
 
         val startClass = "net.corda.workbench.transactionBuilder.agent.AgentKt"
         val classPath = StringBuilder("build/libs/corda-transaction-builder.jar")
@@ -46,7 +46,7 @@ class StartAgentTask(registry: Registry) : BaseTask() {
         val pid = getPidOfProcess(pb)
         File("${ctx.workingDir}/process_id").writeText(pid.toString())
 
-        executionContext.messageStream.invoke("Agent process started on $port, with pid: $pid")
+        executionContext.messageSink.invoke("Agent process started on $port, with pid: $pid")
 
         // record this in the event store
         val ev = EventFactory.AGENT_STARTED(ctx.networkName, port, pid)

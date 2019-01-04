@@ -1,4 +1,4 @@
-package net.corda.workbench.transactionBuilder.api
+package net.corda.workbench.transactionBuilder.agent.api
 
 import io.javalin.ApiBuilder
 import io.javalin.Javalin

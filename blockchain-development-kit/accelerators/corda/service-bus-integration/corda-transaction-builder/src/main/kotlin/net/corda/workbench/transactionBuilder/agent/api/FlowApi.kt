@@ -1,4 +1,4 @@
-package net.corda.workbench.transactionBuilder.api
+package net.corda.workbench.transactionBuilder.agent.api
 
 import io.javalin.ApiBuilder
 import io.javalin.Context
@@ -25,7 +25,6 @@ class FlowApi(private val registry: Registry) {
     val networkManager: String = "http://corda-local-network:1114"
     val loader: CordaAppLoader = CordaAppLoader().scan()
 
-
     fun register() {
         val app = registry.retrieve(Javalin::class.java)
         ApiBuilder.path(":network/:node/:app") {
@@ -46,7 +45,6 @@ class FlowApi(private val registry: Registry) {
                             helper.connect()
                             val client = helper.cordaRPCOps()!!
                             val resolver = RpcPartyResolver(helper)
-
 
                             // todo - fix to pass multiple packages
                             val runner = FlowRunner(scannablePackages.single(),
