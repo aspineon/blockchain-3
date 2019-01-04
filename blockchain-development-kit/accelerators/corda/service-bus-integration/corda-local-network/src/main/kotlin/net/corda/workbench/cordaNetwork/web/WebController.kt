@@ -18,15 +18,22 @@ import net.corda.workbench.transactionBuilder.readFileAsText
 
 import org.http4k.core.*
 import org.http4k.core.body.formAsMap
+import org.http4k.routing.RoutingHttpHandler
 import org.http4k.routing.bind
 import org.http4k.routing.path
 import org.http4k.routing.routes
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.io.FileInputStream
+import java.io.InputStream
+import java.nio.file.Paths
 import java.util.*
 
-class WebController2(private val registry: Registry) : HttpHandler {
+/**
+ * Controller for rendering embedded website
+ */
+class WebController(private val registry: Registry) : HttpHandler {
     private val repo = Repo(registry.retrieve(EventStore::class.java))
     private val processManager = registry.retrieve(ProcessManager::class.java)
     private val config = registry.retrieve(AppConfig::class.java)
@@ -36,7 +43,7 @@ class WebController2(private val registry: Registry) : HttpHandler {
     private val taskRepos = HashMap<String, TaskRepo>()
 
 
-    private val routes = routes(
+    private val routes: RoutingHttpHandler = routes(
             "/" bind Method.GET to {
                 Response(Status.PERMANENT_REDIRECT).header("Location", "/web/home")
             },
@@ -75,7 +82,7 @@ class WebController2(private val registry: Registry) : HttpHandler {
                         val nodes = repo.nodes(network)
                         val cordapps = repo.deployedCordapps(network)
                         val page = renderTemplate("network.md",
-                                mapOf("nodes" to nodes, "cordapps" to cordapps, "name" to network))
+                                mapOf("nodes" to nodes, "cordapps" to cordapps, "networkName" to network))
                         html(page)
 
                     },
@@ -113,7 +120,6 @@ class WebController2(private val registry: Registry) : HttpHandler {
                                         "md5Hash" to md5Hash))
                         html(page)
                     },
-
 
                     "/networks/{network}/start" bind Method.POST to { req ->
                         doStartNetwork(req)
@@ -196,6 +202,21 @@ class WebController2(private val registry: Registry) : HttpHandler {
                         text(logs)
                     },
 
+
+                    "/networks/{network}/cordapps/{name}/download" bind Method.GET to { req ->
+                        val network = req.path("network")!!
+                        val cordapp = req.path("name")!!
+                        val context = RealContext(network)
+                        //val messageSink = buildMessageSink(context)
+
+                        val masterCopy = Paths.get(context.workingDir, ".cordapps", cordapp).normalize()
+                                .toAbsolutePath()
+                                .toFile()
+
+                        //val logs = NodeLogsTask(context, node).exec()
+                        binary(masterCopy.inputStream())
+                    },
+
                     "/processes" bind Method.GET to { req ->
                         processManager.allProcesses()
                         val page = renderTemplate("processList.md",
@@ -215,6 +236,22 @@ class WebController2(private val registry: Registry) : HttpHandler {
 
                     }
 
+            ),
+            "/api" bind routes(
+                    "/networks" bind Method.GET to { req ->
+                        val networks = repo.networks()
+                        json(JSONArray(networks))
+                    },
+                    "/networks/{network}/cordapps" bind Method.GET to { req ->
+                        val network = req.path("network")!!
+                        val cordapps = repo.deployedCordapps(network)
+                        json(JSONArray(cordapps))
+                    },
+                    "/networks/{network}/nodes" bind Method.GET to { req ->
+                        val network = req.path("network")!!
+                        val nodes = repo.nodes(network)
+                        json(JSONArray(nodes))
+                    }
             ),
             "/ajax" bind routes(
                     "/networks/{network}/nodes/{node}/status" bind Method.GET to { req ->
@@ -291,6 +328,21 @@ class WebController2(private val registry: Registry) : HttpHandler {
         return Response(Status.OK)
                 .body(JSONObject(data).toString(2))
                 .header("Content-Type", "application/json; charset=utf-8")
+
+    }
+
+    private fun json(data: JSONArray): Response {
+        return Response(Status.OK)
+                .body(data.toString(2))
+                .header("Content-Type", "application/json; charset=utf-8")
+
+    }
+
+    private fun binary(data: InputStream): Response {
+        return Response(Status.OK)
+                .body(data)
+                .header("Content-Type", "application/octet-stream")
+
 
     }
 

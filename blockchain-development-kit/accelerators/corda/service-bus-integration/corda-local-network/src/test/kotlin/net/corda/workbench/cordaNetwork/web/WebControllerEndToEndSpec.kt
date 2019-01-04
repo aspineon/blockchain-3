@@ -5,7 +5,6 @@ import com.natpryce.hamkrest.containsSubstring
 import net.corda.workbench.commons.event.FileEventStore
 import net.corda.workbench.commons.processManager.ProcessManager
 import net.corda.workbench.commons.registry.Registry
-import net.corda.workbench.transactionBuilder.events.EventFactory
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Status
@@ -31,7 +30,7 @@ object WebControllerEndToEndSpec : Spek({
     val es = FileEventStore()
     val processManager = ProcessManager()
     val registry = Registry().store(es).store(processManager)
-    val controller = WebController2(registry)
+    val controller = WebController(registry)
 
     describe("Creating and starting a new network") {
 

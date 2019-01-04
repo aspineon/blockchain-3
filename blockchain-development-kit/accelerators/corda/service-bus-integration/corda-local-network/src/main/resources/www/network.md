@@ -1,5 +1,5 @@
 
-# Network {{name}}
+# {{networkName}}
 
 ## Nodes
 
@@ -10,15 +10,16 @@
 ## CorDapps
 
 {{#cordapps}}
-* <strong>{{name}}</strong> (deployed at {{deployedAt}} with length {{size}} bytes and MD5 hash of {{md5Hash}})
+* <strong>{{name}}</strong> (deployed at {{deployedAt}} 
+with length {{size}} bytes and MD5 hash of {{md5Hash}}). [Download](/web/networks/{{networkName}}/cordapps/{{name}}/download)
 {{/cordapps}}
 
 
 ## Actions
 
-* [Status](/web/networks/{{name}}/status)
-* [Start All Nodes](/web/networks/{{name}}/start)
-* [Stop All Nodes](/web/networks/{{name}}/stop)
-* [Deploy a CorDapp](/web/networks/{{name}}/deploy)
-* [Task History](/web/networks/{{name}}/tasks/history)
+* [Status](/web/networks/{{networkName}}/status)
+* [Start All Nodes](/web/networks/{{networkName}}/start)
+* [Stop All Nodes](/web/networks/{{networkName}}/stop)
+* [Deploy a CorDapp](/web/networks/{{networkName}}/deploy)
+* [Task History](/web/networks/{{networkName}}/tasks/history)
 

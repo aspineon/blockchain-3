@@ -26,7 +26,7 @@ object WebControllerUnitSpec : Spek({
 
     val es = FileEventStore()
     val registry = Registry().store(es)
-    val controller = WebController2(registry)
+    val controller = WebController(registry)
 
     describe("The Web Controller") {
 

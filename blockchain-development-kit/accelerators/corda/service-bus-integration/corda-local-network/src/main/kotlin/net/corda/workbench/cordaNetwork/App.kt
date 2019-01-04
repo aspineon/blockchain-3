@@ -7,10 +7,9 @@ import net.corda.workbench.commons.taskManager.TaskExecutor
 import net.corda.workbench.cordaNetwork.events.Repo
 import net.corda.workbench.cordaNetwork.tasks.RealContext
 import net.corda.workbench.cordaNetwork.tasks.StopCordaNodesTask
-import net.corda.workbench.cordaNetwork.web.WebController2
+import net.corda.workbench.cordaNetwork.web.WebController
 import org.http4k.server.Jetty
 import org.http4k.server.asServer
-import java.net.InetAddress
 
 fun main(args: Array<String>) {
 
@@ -37,7 +36,7 @@ fun main(args: Array<String>) {
         executor.exec(task)
     }
 
-    val server =  WebController2(registry).asServer(Jetty(1115)).start()
+    val server =  WebController(registry).asServer(Jetty(1115)).start()
     println ("$server started!")
 
 

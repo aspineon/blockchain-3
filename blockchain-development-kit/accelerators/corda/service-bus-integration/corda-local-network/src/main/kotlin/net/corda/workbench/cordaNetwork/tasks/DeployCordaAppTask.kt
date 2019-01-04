@@ -14,14 +14,20 @@ import java.nio.file.Paths
  * Deploys the supplies app to all nodes, overwriting any existing
  * apps.
  */
-class DeployCordaAppTask(private val registry: Registry, private val cordapp: File) : NodesTask(registry.retrieve(TaskContext::class.java)) {
-    val es = registry.retrieve(EventStore::class.java)
+class DeployCordaAppTask(registry: Registry, private val cordapp: File) : NodesTask(registry.retrieve(TaskContext::class.java)) {
+    private val es = registry.retrieve(EventStore::class.java)
 
     override fun exec(executionContext: ExecutionContext) {
 
-        for (f in nodesIter()) {
-            executionContext.messageSink.invoke("Deploying cordapp ${cordapp.name} to ${f.name}")
-            val target = Paths.get(f.toString(), "cordapps", cordapp.name)
+        val masterCopy = Paths.get(ctx.workingDir, ".cordapps", cordapp.name).normalize()
+                .toAbsolutePath()
+                .toFile()
+        masterCopy.mkdirs()
+        cordapp.copyTo(masterCopy,true)
+
+        for (node in nodesIter()) {
+            executionContext.messageSink.invoke("Deploying cordapp ${cordapp.name} to ${node.name}")
+            val target = Paths.get(node.toString(), "cordapps", cordapp.name)
                     .normalize()
                     .toAbsolutePath()
                     .toFile()

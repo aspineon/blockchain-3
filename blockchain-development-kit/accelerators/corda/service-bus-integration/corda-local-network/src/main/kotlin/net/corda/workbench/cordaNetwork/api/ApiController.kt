@@ -14,6 +14,7 @@ import net.corda.workbench.commons.taskManager.TaskRepo
 import org.json.JSONArray
 import java.io.File
 import net.corda.workbench.commons.registry.Registry
+import net.corda.workbench.cordaNetwork.events.Repo
 import net.corda.workbench.cordaNetwork.tasks.*
 
 
@@ -22,6 +23,8 @@ class ApiController(private val registry: Registry) {
     // simple file log of tasks message
     private val taskRepos = HashMap<String, TaskRepo>()
     private val processManager = registry.retrieve(ProcessManager::class.java)
+    private val repo = Repo(registry.retrieve(EventStore::class.java))
+
 
     fun register(app: Javalin) {
 
@@ -150,6 +153,9 @@ class ApiController(private val registry: Registry) {
 
             }
         }
+
+
+
     }
 
     private fun buildMessageSink(context: TaskContext): ((TaskLogMessage) -> Unit) {
