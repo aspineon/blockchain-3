@@ -1,7 +1,7 @@
 # {{networkName}}
 
 
-Explore {{nodeName}}
+You are exploring **{{nodeName}}**. Switch [node](/web/networks/{{networkName}}/nodes)
 
 ## Flows
 

@@ -126,8 +126,9 @@ class AgentQueryImpl(private val baseUrl: String) : AgentClient {
         val resp = client(request)
 
         if (resp.status.successful) {
+            println ("response from agent is ${resp.body.toString()}")
             val json = JSONObject(resp.body.toString())
-            return JSONObject(json).toMap()
+            return json.toMap()
         } else {
             throw RuntimeException("$request failed with $resp")
         }

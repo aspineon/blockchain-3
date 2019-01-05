@@ -38,8 +38,7 @@ class StartAgentTask(registry: Registry) : BaseTask() {
         val port = freePort(10200..10300)
 
         val pb = ProcessBuilder(listOf("java", "-cp", classPath.toString(), startClass, port.toString()))
-                .redirectOutput(ProcessBuilder.Redirect.INHERIT)
-                .redirectError(ProcessBuilder.Redirect.INHERIT)
+                .inheritIO()
                 .start()
 
 

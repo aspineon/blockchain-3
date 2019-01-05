@@ -39,7 +39,7 @@ class JavalinAgent(private val port: Int) {
         QueryApi(registry).register()
         FlowApi(registry).register()
         app.start()
-        println("Ready on port $port :)")
+        println("Agent ready on port $port :)")
         return app
     }
 }

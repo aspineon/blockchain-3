@@ -125,6 +125,15 @@ class WebController2(private val registry: Registry) : HttpHandler {
                                                 "nodes" to repo.nodes(network)))
                                 html(page)
                             },
+                            "/{network}/nodes" bind Method.GET to { req ->
+                                val network = req.path("network")!!
+                                repo.nodes(network)
+
+                                val page = renderTemplate("networkNodes.md",
+                                        mapOf("networkName" to network,
+                                                "nodes" to repo.nodes(network)))
+                                html(page)
+                            },
                             "/{network}/nodes/{node}" bind Method.GET to { req ->
                                 val network = req.path("network")!!
                                 val node = req.path("node")!!
@@ -185,34 +194,18 @@ class WebController2(private val registry: Registry) : HttpHandler {
                                 val flow = req.path("flow")!!
                                 val app = req.path("app")!!
 
-
-
-
-
-
-//                                val payload = req.body.stream.bufferedReader().use { it.readText() }
-//                                println ("payload is \n $payload")
-//                                val json = JSONObject(payload)
-//                                println(json.toString())
                                 val agentClient = agentClientFactory.createClient(network, node)
 
-
-
+                                // arg ugly - should be better encapsulated
                                 val metadata = agentClient.flowMetaData(appName, flow)
                                 val remapper = Remapper(metadata)
-
-
                                 val rawData = req.formAsMap().mapValues { remapper.remap(it.key,it.value[0]!!)}
                                 println(rawData)
-
-
 
                                 val result = agentClient.runFlow(app,flow,rawData)
 
                                json(result as Map<String,Any>)
 
-
-                                //j//son(JSONObject(query).toMap())
 //
                             }
 
@@ -338,9 +331,14 @@ class WebController2(private val registry: Registry) : HttpHandler {
             if (expectedType == "Int"){
                 return value.toInt()
             }
-            if (expectedType == "UniqueIdentifier"){
-                return UniqueIdentifier(null, UUID.fromString(value))
+            if (expectedType == "Long"){
+                return value.toLong()
             }
+
+            // todo - other basic types
+//            if (expectedType == "UniqueIdentifier"){
+//                return UniqueIdentifier(null, UUID.fromString(value))
+//            }
             return value
 
         }

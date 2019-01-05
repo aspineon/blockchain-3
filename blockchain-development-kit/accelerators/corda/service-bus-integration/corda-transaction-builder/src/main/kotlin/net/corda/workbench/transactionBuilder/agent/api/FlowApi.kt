@@ -56,14 +56,17 @@ class FlowApi(private val registry: Registry) {
                             val flowName = ctx.param("name")!!
                             println("running $flowName with ${ctx.body()}")
 
-                            val result = runner.run<Any>(ctx.param("name")!!, data)
-                            if (result != null) {
-                                println(result)
-                                ctx.json(result)
+                            println ("agent is about to run flow")
 
-                            } else {
-                                ctx.json(mapOf("message" to "failed or timed out making call to flow class"))
-                            }
+                                try {
+                                    val result = runner.run<Any>(ctx.param("name")!!, data)
+                                    ctx.json(mapOf("success" to true, "result" to result))
+                                }
+                                catch (ex : Exception){
+                                    ctx.json(mapOf("success" to false, "message" to ex.message))
+
+                                }
+
                         }
 
                         ApiBuilder.get("metadata") { ctx ->
