@@ -137,7 +137,7 @@ class FlowRunner(packageName: String = "net.corda",
     var flowClasses: List<ClassInfo> = scanJars(packageName)
 
 
-    inline fun <reified T> run(flowName: String, params: Map<String, Any?> = emptyMap()): T? {
+    inline fun <reified T> run(flowName: String, params: Map<String, Any?> = emptyMap()): T {
 
         val clazzInfo = flowClasses.first { it.simpleName == flowName }
 
@@ -164,8 +164,9 @@ class FlowRunner(packageName: String = "net.corda",
 
             return tracker.returnValue.get(30, TimeUnit.SECONDS);
         } catch (ex: Exception) {
-            ex.printStackTrace()
-            return null
+            throw ex
+//            ex.printStackTrace()
+//            return null
         }
     }
 
