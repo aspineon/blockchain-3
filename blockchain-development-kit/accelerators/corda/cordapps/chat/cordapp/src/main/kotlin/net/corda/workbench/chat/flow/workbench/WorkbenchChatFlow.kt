@@ -21,15 +21,13 @@ import net.corda.workbench.chat.flow.StartChatFlow
 @InitiatingFlow
 @StartableByRPC
 class WorkbenchChatFlow(private val linearId: UniqueIdentifier,
-                        private val message: String,
-                        private val otherParty: Party
+                        private val message: String
 ) : FlowLogic<TxnResult>() {
 
     @Suspendable
     override fun call(): TxnResult {
 
-
-        val txn = subFlow(ChatFlow(message, otherParty, linearId))
+        val txn = subFlow(ChatFlow(message, linearId))
         return buildWorkbenchTxn(txn, ourIdentity)
     }
 }
