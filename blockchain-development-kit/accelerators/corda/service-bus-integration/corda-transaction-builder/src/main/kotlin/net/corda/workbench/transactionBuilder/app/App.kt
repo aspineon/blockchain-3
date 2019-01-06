@@ -6,6 +6,7 @@ import io.javalin.translator.json.JavalinJacksonPlugin
 
 import net.corda.reflections.serializers.jackson.Jackson
 import net.corda.workbench.commons.event.FileEventStore
+import net.corda.workbench.commons.processManager.ProcessManager
 import net.corda.workbench.commons.registry.Registry
 import net.corda.workbench.transactionBuilder.clients.AgentClientFactoryImpl
 import net.corda.workbench.transactionBuilder.clients.LocalNetworkClientImpl
@@ -33,6 +34,7 @@ fun main (args : Array<String>){
     registry.store(Repo(es))
     registry.store(LocalNetworkClientImpl())
     registry.store(AgentClientFactoryImpl(es))
+    registry.store(ProcessManager())
 
     val server =  WebController2(registry).asServer(Jetty(1116)).start()
     println ("$server started!")

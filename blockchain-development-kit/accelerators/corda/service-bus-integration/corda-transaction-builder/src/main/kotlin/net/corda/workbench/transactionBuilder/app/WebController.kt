@@ -5,6 +5,7 @@ import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.util.options.MutableDataSet
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.workbench.commons.event.EventStore
+import net.corda.workbench.commons.processManager.ProcessManager
 import net.corda.workbench.commons.registry.Registry
 import net.corda.workbench.commons.taskManager.*
 import net.corda.workbench.transactionBuilder.clients.AgentClientFactory
@@ -30,10 +31,11 @@ import org.slf4j.Logger
 import java.io.File
 import java.io.FileInputStream
 import java.util.*
+import kotlin.collections.HashMap
 
 class WebController2(private val registry: Registry) : HttpHandler {
     private val repo = Repo(registry.retrieve(EventStore::class.java))
-//    private val processManager = registry.retrieve(ProcessManager::class.java)
+    private val processManager = registry.retrieve(ProcessManager::class.java)
 //    private val config = registry.retrieve(AppConfig::class.java)
 
     private val localNetworkClient = registry.retrieve(LocalNetworkClient::class.java)
@@ -44,31 +46,11 @@ class WebController2(private val registry: Registry) : HttpHandler {
     //private val appName = "refrigerated-transportation"
     private val appName = "chat"
 
+    private val idLookup = ArrayList<Pair<String,String>>()
+
 
     // todo - should be injected in
     private val taskRepos = HashMap<String, TaskRepo>()
-
-
-//    private val routes = routes(
-//            "/" bind Method.GET to {
-//                Response(Status.PERMANENT_REDIRECT).header("Location", "/web/home")
-//            },
-//            "/web" bind routes(
-//                    "/home" bind Method.GET to {
-//                        val networks = repo.networks()
-//                        val page = renderTemplate("home.md",
-//                                kotlin.collections.mapOf("networks" to networks))
-//                        html(page)
-//
-//                    },
-//
-//                    "/style.css" bind Method.GET to {
-//                        val css = java.io.FileInputStream("src/main/resources/www/style.css").bufferedReader().use { it.readText() }
-//                        css(css)
-//                    }
-//            )
-//
-//    )
 
     private val routes: RoutingHttpHandler = routes(
             "/" bind Method.GET to {
@@ -76,7 +58,8 @@ class WebController2(private val registry: Registry) : HttpHandler {
             },
             "/web" bind routes(
                     "/home" bind Method.GET to {
-                        val page = renderTemplate("home.md")
+                        val page = renderTemplate("home.md",
+                                mapOf("joinedNetworks" to repo.joinedNetworks()))
                         html(page)
 
                     },
@@ -138,6 +121,7 @@ class WebController2(private val registry: Registry) : HttpHandler {
                                 val network = req.path("network")!!
                                 val node = req.path("node")!!
 
+                                checkAgentIsRunning(network)
                                 val agentClient = agentClientFactory.createClient(network, node)
 
                                 // todo - should be reading the list of apps
@@ -157,6 +141,8 @@ class WebController2(private val registry: Registry) : HttpHandler {
                                 val node = req.path("node")!!
                                 val state = req.path("state")!!
                                 val app = req.path("app")!!
+
+                                checkAgentIsRunning(network)
                                 val agentClient = agentClientFactory.createClient(network, node)
 
                                 val query = agentClient.queryState(appName, state)
@@ -168,22 +154,25 @@ class WebController2(private val registry: Registry) : HttpHandler {
                                 val node = req.path("node")!!
                                 val flow = req.path("flow")!!
                                 val app = req.path("app")!!
+
+                                checkAgentIsRunning(network)
                                 val agentClient = agentClientFactory.createClient(network, node)
 
                                 val query = agentClient.flowMetaData(appName, flow)
                                 println(query)
 
                                 val metadata = JSONObject(query).toMap()
+                                println(metadata)
 
                                 val page = renderTemplate("flowForm.md",
                                         mapOf("networkName" to network,
                                                 "nodeName" to node,
                                                 "appName" to app,
                                                 "flowName" to flow,
-                                                "metadata" to metadata.entries
+                                                "metadata" to metadata.entries,
+                                                "idLookup" to idLookup
                                         ))
                                 html(page)
-
 
                                 //j//son(JSONObject(query).toMap())
 //
@@ -194,27 +183,55 @@ class WebController2(private val registry: Registry) : HttpHandler {
                                 val flow = req.path("flow")!!
                                 val app = req.path("app")!!
 
+                                checkAgentIsRunning(network)
                                 val agentClient = agentClientFactory.createClient(network, node)
 
                                 // arg ugly - should be better encapsulated
                                 val metadata = agentClient.flowMetaData(appName, flow)
                                 val remapper = Remapper(metadata)
-                                val rawData = req.formAsMap().mapValues { remapper.remap(it.key,it.value[0]!!)}
+                                val rawData = req.formAsMap().mapValues { remapper.remap(it.key, it.value[0]!!) }
                                 println(rawData)
 
-                                val result = agentClient.runFlow(app,flow,rawData)
+                                val result = agentClient.runFlow(app, flow, rawData)
 
-                               json(result as Map<String,Any>)
+                                json(result as Map<String, Any>)
 
-//
                             }
 
-
                     ),
+                    "/processes" bind Method.GET to { req ->
+                        processManager.allProcesses()
+                        val page = renderTemplate("processList.md",
+                                mapOf("processes" to processManager.allProcesses()))
+                        html(page)
+
+                    },
                     "/style.css" bind Method.GET to {
                         val css = java.io.FileInputStream("src/main/resources/www/style.css").bufferedReader().use { it.readText() }
                         css(css)
-                    }
+                    },
+                    "/uniqueidentifier" bind routes(
+                            "/create" bind Method.GET to { req ->
+                                text(UUID.randomUUID().toString())
+
+                            },
+                            "/save" bind Method.GET to { req ->
+                                val id = req.query("id")!!
+                                val name =  req.query("name")!!
+
+                                idLookup.add(Pair(id,name))
+
+                                text("success")
+
+                            },
+                            "/list" bind Method.GET to { req ->
+
+                                json(JSONArray(idLookup))
+
+                            }
+
+
+                    )
             )
     )
 
@@ -274,6 +291,17 @@ class WebController2(private val registry: Registry) : HttpHandler {
     }
 
 
+    private fun checkAgentIsRunning(network: String) {
+        if (processManager.findByLabel("$network - Agent") == null) {
+            val context = RealContext(network)
+            val executor = buildExecutor(context)
+
+            val startTask = StartAgentTask(registry.overide(context))
+            executor.exec(startTask)
+        }
+    }
+
+
     private fun renderMustache(path: String, params: Map<String, Any?>): String {
         try {
             // mustache processing
@@ -323,15 +351,15 @@ class WebController2(private val registry: Registry) : HttpHandler {
 
     data class CreateNetworkRequest(val name: String, val organisations: List<String>)
 
-    class Remapper(xx : Map<String,Any>){
-        val metadata =  xx as Map<String,Map<String,Any>>
+    class Remapper(xx: Map<String, Any>) {
+        val metadata = xx as Map<String, Map<String, Any>>
 
-        fun remap(key: String, value : String) : Any {
+        fun remap(key: String, value: String): Any {
             val expectedType = metadata[key]!!["type"] as String
-            if (expectedType == "Int"){
+            if (expectedType == "Int") {
                 return value.toInt()
             }
-            if (expectedType == "Long"){
+            if (expectedType == "Long") {
                 return value.toLong()
             }
 

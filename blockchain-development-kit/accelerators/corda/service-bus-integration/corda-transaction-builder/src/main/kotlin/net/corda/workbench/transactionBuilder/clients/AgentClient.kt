@@ -96,7 +96,7 @@ class AgentQueryImpl(private val baseUrl: String) : AgentClient {
             return listOf("WorkbenchCreateFlow", "WorkbenchTelemetryFlow", "WorkbenchTransferFlow", "WorkbenchCompleteFlow")
         }
         if ("chat".equals(app, true)) {
-            return listOf("WorkbenchStartFlow", "WorkbenchChatFlow", "WorkbenchendFlow")
+            return listOf("WorkbenchStartFlow", "WorkbenchChatFlow", "WorkbenchEndFlow")
         }
         return emptyList()
     }
@@ -108,6 +108,7 @@ class AgentQueryImpl(private val baseUrl: String) : AgentClient {
         val resp = client(request)
 
         if (resp.status.successful) {
+            println("meta data for flow is: ${resp.body.toString()}")
             val json = JSONObject(resp.body.toString())
             return json.toMap()
         } else {
