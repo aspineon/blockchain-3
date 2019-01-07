@@ -9,7 +9,7 @@ import net.corda.reflections.annotations.Description
 import kotlin.reflect.KClass
 
 
-class FlowMetaDataExtractor(val packageName: String = "net.corda") {
+class FlowMetaDataExtractor(private val packageName: String = "net.corda") {
 
     var flowClasses: List<ClassInfo>
 
