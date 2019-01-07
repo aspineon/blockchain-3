@@ -10,6 +10,7 @@ import net.corda.core.flows.InitiatingFlow
 import net.corda.core.flows.StartableByRPC
 import net.corda.core.identity.Party
 import net.corda.core.transactions.CoreTransaction
+import net.corda.reflections.annotations.Description
 import java.lang.RuntimeException
 
 /**
@@ -57,6 +58,17 @@ class MultipleConstructorFlow(val p1: String, val p2 : Int) : FlowLogic<String>(
     }
 }
 
+
+@InitiatingFlow
+@StartableByRPC
+@Description("Hello World")
+class FlowWithAnnotations() : FlowLogic<String>() {
+
+    @Suspendable
+    override fun call(): String {
+        return "result"
+    }
+}
 
 
 class FakeTransaction : CoreTransaction() {
