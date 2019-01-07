@@ -30,15 +30,19 @@ class FlowApi(private val registry: Registry) {
         ApiBuilder.path(":network/:node/:app") {
 
             app.routes {
+                ApiBuilder.get("flows/list") { ctx ->
+                    val appConfig = lookupAppConfig(ctx)!!
+                    val extractor = FlowMetaDataExtractor(appConfig.scannablePackages[0])
+
+                    ctx.json(extractor.availableFlows())
+                }
                 ApiBuilder.path("flows/:name") {
                     app.routes {
                         ApiBuilder.post("run") { ctx ->
                             val nodeConfig = lookupNodeConfig(ctx)
 
-                            val scannablePackages = scannablePackages(ctx)
-                            if (scannablePackages.isEmpty()){
-                                throw RuntimeException("cannot locate the scannablePackages for ${ctx.param("app")}")
-                            }
+                            val appConfig = lookupAppConfig(ctx)!!
+
 
                             val helper = RPCHelper("corda-local-network:${nodeConfig.port}")
                             helper.connect()
@@ -46,34 +50,25 @@ class FlowApi(private val registry: Registry) {
                             val resolver = RpcPartyResolver(helper)
 
                             // todo - fix to pass multiple packages
-                            val runner = FlowRunner(scannablePackages.single(),
+                            val runner = FlowRunner(appConfig.scannablePackages[0],
                                     resolver,
                                     LiveRpcCaller(client),
                                     Reporter(ctx.response()))
 
                             val data = JSONObject(ctx.body()).toMap()
 
-                            val flowName = ctx.param("name")!!
-                            println("running $flowName with ${ctx.body()}")
-
-                            println ("agent is about to run flow")
-
-                                try {
-                                    val result = runner.run<Any>(ctx.param("name")!!, data)
-                                    ctx.json(mapOf("success" to true, "result" to result))
-                                }
-                                catch (ex : Exception){
-                                    ctx.json(mapOf("success" to false, "message" to ex.message))
-
-                                }
+                            try {
+                                val result = runner.run<Any>(ctx.param("name")!!, data)
+                                ctx.json(mapOf("success" to true, "result" to result))
+                            } catch (ex: Exception) {
+                                ctx.json(mapOf("success" to false, "message" to ex.message))
+                            }
 
                         }
 
                         ApiBuilder.get("metadata") { ctx ->
-
                             val appConfig = lookupAppConfig(ctx)!!
                             val extractor = FlowMetaDataExtractor(appConfig.scannablePackages[0])
-
 
                             if (ctx.booleanQueryParam("all")) {
                                 val result = extractor.allConstructorMetaData(ctx.param("name")!!)
@@ -84,6 +79,15 @@ class FlowApi(private val registry: Registry) {
                                 ctx.json(result)
                             }
 
+                        }
+
+
+                        ApiBuilder.get("annotations") { ctx ->
+                            val appConfig = lookupAppConfig(ctx)!!
+                            val extractor = FlowMetaDataExtractor(appConfig.scannablePackages[0])
+
+                            val result = extractor.flowAnnotations(ctx.param("name")!!)
+                            ctx.json(result)
                         }
                     }
                 }
@@ -104,22 +108,21 @@ class FlowApi(private val registry: Registry) {
         }
     }
 
-    fun lookupAppConfig(ctx: Context): CordaAppConfig? {
+    private fun lookupAppConfig(ctx: Context): CordaAppConfig? {
         val app = ctx.param("app")!!
         return loader.findApp(app)
-
     }
 
-    private fun scannablePackages(ctx: Context): List<String> {
-        val network = ctx.param("network")!!
-        val app = ctx.param("app")!!
-        return registry.retrieve(EventStore::class.java)
-                .retrieve(Filter(aggregateId = network))
-                .filter { it.type == "CordaAppDeployed" && app == it.payload["appname"] }
-                .fold(emptyList()) { _, event ->
-                    event.payload["scannablePackages"] as List<String>
-                }
-    }
+//    private fun scannablePackages(ctx: Context): List<String> {
+//        val network = ctx.param("network")!!
+//        val app = ctx.param("app")!!
+//        return registry.retrieve(EventStore::class.java)
+//                .retrieve(Filter(aggregateId = network))
+//                .filter { it.type == "CordaAppDeployed" && app == it.payload["appname"] }
+//                .fold(emptyList()) { _, event ->
+//                    event.payload["scannablePackages"] as List<String>
+//                }
+//    }
 }
 
 data class NodeConfig(val legalName: String, val port: Int) {

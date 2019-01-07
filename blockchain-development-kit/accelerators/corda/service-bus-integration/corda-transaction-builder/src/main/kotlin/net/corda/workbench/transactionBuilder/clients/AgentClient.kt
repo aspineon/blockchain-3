@@ -44,6 +44,8 @@ interface AgentClient {
 
     fun flowMetaData(app: String, flow: String): Map<String, Any>
 
+    fun flowAnnotations(app: String, flow: String): Map<String, Any>
+
     fun runFlow(app: String, flow: String, data: Map<String, Any?>): Any?
 
 }
@@ -62,6 +64,7 @@ class AgentClientFactoryImpl(es: EventStore) : AgentClientFactory {
 
 class AgentQueryImpl(private val baseUrl: String) : AgentClient {
 
+
     override fun queryState(app: String, state: String): List<Map<String, Any>> {
         val request = Request(Method.GET, "$baseUrl/$app/query/$state")
         val client = ApacheClient()
@@ -79,26 +82,45 @@ class AgentQueryImpl(private val baseUrl: String) : AgentClient {
         }
     }
 
+
     override fun listStates(app: String): List<String> {
-        // hardcoded for now
-        if ("refrigerated-transportation".equals(app, true)) {
-            return listOf("Shipment")
+        val request = Request(Method.GET, "$baseUrl/$app/states/list")
+        val client = ApacheClient()
+        val resp = client(request)
+
+        if (resp.status.successful) {
+            val json = JSONArray(resp.body.toString())
+            return json.toList() as List<String>
+        } else {
+            throw RuntimeException("$request failed with $resp")
         }
-        if ("chat".equals(app, true)) {
-            return listOf("Message")
-        }
-        return emptyList()
     }
 
+
     override fun listFlows(app: String): List<String> {
-        // hardcoded for now
-        if ("refrigerated-transportation".equals(app, true)) {
-            return listOf("WorkbenchCreateFlow", "WorkbenchTelemetryFlow", "WorkbenchTransferFlow", "WorkbenchCompleteFlow")
+        val request = Request(Method.GET, "$baseUrl/$app/flows/list")
+        val client = ApacheClient()
+        val resp = client(request)
+
+        if (resp.status.successful) {
+            val json = JSONArray(resp.body.toString())
+            return json.toList() as List<String>
+        } else {
+            throw RuntimeException("$request failed with $resp")
         }
-        if ("chat".equals(app, true)) {
-            return listOf("WorkbenchStartFlow", "WorkbenchChatFlow", "WorkbenchEndFlow")
+    }
+
+    override fun flowAnnotations(app: String, flow: String): Map<String, Any> {
+        val request = Request(Method.GET, "$baseUrl/$app/flows/$flow/annotations")
+        val client = ApacheClient()
+        val resp = client(request)
+
+        if (resp.status.successful) {
+            val json = JSONObject(resp.body.toString())
+            return json.toMap()
+        } else {
+            throw RuntimeException("$request failed with $resp")
         }
-        return emptyList()
     }
 
     override fun flowMetaData(app: String, flow: String): Map<String, Any> {
@@ -108,7 +130,7 @@ class AgentQueryImpl(private val baseUrl: String) : AgentClient {
         val resp = client(request)
 
         if (resp.status.successful) {
-            println("meta data for flow is: ${resp.body.toString()}")
+            println("meta data for flow is: ${resp.body}")
             val json = JSONObject(resp.body.toString())
             return json.toMap()
         } else {
@@ -127,7 +149,7 @@ class AgentQueryImpl(private val baseUrl: String) : AgentClient {
         val resp = client(request)
 
         if (resp.status.successful) {
-            println ("response from agent is ${resp.body.toString()}")
+            println("response from agent is ${resp.body.toString()}")
             val json = JSONObject(resp.body.toString())
             return json.toMap()
         } else {

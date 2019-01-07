@@ -3,7 +3,6 @@ package net.corda.workbench.transactionBuilder.app
 import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.util.options.MutableDataSet
-import net.corda.core.contracts.UniqueIdentifier
 import net.corda.workbench.commons.event.EventStore
 import net.corda.workbench.commons.processManager.ProcessManager
 import net.corda.workbench.commons.registry.Registry
@@ -18,7 +17,6 @@ import net.corda.workbench.transactionBuilder.tasks.RealContext
 import net.corda.workbench.transactionBuilder.tasks.StartAgentTask
 
 import org.http4k.core.*
-import org.http4k.core.body.form
 import org.http4k.core.body.formAsMap
 import org.http4k.routing.RoutingHttpHandler
 import org.http4k.routing.bind
@@ -44,9 +42,9 @@ class WebController2(private val registry: Registry) : HttpHandler {
 
     // hardcoded to a single app for now
     //private val appName = "refrigerated-transportation"
-    private val appName = "chat"
+    //private val appName = "chat"
 
-    private val idLookup = ArrayList<Pair<String,String>>()
+    private val idLookup = ArrayList<Pair<String, String>>()
 
 
     // todo - should be injected in
@@ -125,13 +123,22 @@ class WebController2(private val registry: Registry) : HttpHandler {
                                 val agentClient = agentClientFactory.createClient(network, node)
 
                                 // todo - should be reading the list of apps
+                                val apps = ArrayList<Map<String, Any>>()
+
+                                for (app in localNetworkClient.cordapps(network)) {
+
+                                    val appName = app.name.removeSuffix(".jar")
+
+                                    apps.add(mapOf("appName" to app.name.removeSuffix(".jar"),
+                                            "flows" to agentClient.listFlows(appName),
+                                            "states" to agentClient.listStates(appName)))
+
+                                }
 
                                 val page = renderTemplate("networkNode.md",
                                         mapOf("networkName" to network,
                                                 "nodeName" to node,
-                                                "appName" to appName,
-                                                "flows" to agentClient.listFlows(appName),
-                                                "states" to agentClient.listStates(appName)
+                                                "apps" to apps
 
                                         ))
                                 html(page)
@@ -145,7 +152,7 @@ class WebController2(private val registry: Registry) : HttpHandler {
                                 checkAgentIsRunning(network)
                                 val agentClient = agentClientFactory.createClient(network, node)
 
-                                val query = agentClient.queryState(appName, state)
+                                val query = agentClient.queryState(app, state)
                                 json(JSONArray(query))
 //
                             },
@@ -156,13 +163,11 @@ class WebController2(private val registry: Registry) : HttpHandler {
                                 val app = req.path("app")!!
 
                                 checkAgentIsRunning(network)
+
                                 val agentClient = agentClientFactory.createClient(network, node)
-
-                                val query = agentClient.flowMetaData(appName, flow)
-                                println(query)
-
+                                val query = agentClient.flowMetaData(app, flow)
                                 val metadata = JSONObject(query).toMap()
-                                println(metadata)
+                                val annotations = agentClient.flowAnnotations(app,flow)
 
                                 val page = renderTemplate("flowForm.md",
                                         mapOf("networkName" to network,
@@ -170,11 +175,12 @@ class WebController2(private val registry: Registry) : HttpHandler {
                                                 "appName" to app,
                                                 "flowName" to flow,
                                                 "metadata" to metadata.entries,
-                                                "idLookup" to idLookup
+                                                "idLookup" to idLookup,
+                                                "hasDescription" to annotations.containsKey("description"),
+                                                "description" to annotations["description"]
                                         ))
                                 html(page)
 
-                                //j//son(JSONObject(query).toMap())
 //
                             },
                             "/{network}/nodes/{node}/apps/{app}/flows/{flow}/run" bind Method.POST to { req ->
@@ -186,8 +192,8 @@ class WebController2(private val registry: Registry) : HttpHandler {
                                 checkAgentIsRunning(network)
                                 val agentClient = agentClientFactory.createClient(network, node)
 
-                                // arg ugly - should be better encapsulated
-                                val metadata = agentClient.flowMetaData(appName, flow)
+                                // argh ugly - should be better encapsulated
+                                val metadata = agentClient.flowMetaData(app, flow)
                                 val remapper = Remapper(metadata)
                                 val rawData = req.formAsMap().mapValues { remapper.remap(it.key, it.value[0]!!) }
                                 println(rawData)
@@ -217,9 +223,9 @@ class WebController2(private val registry: Registry) : HttpHandler {
                             },
                             "/save" bind Method.GET to { req ->
                                 val id = req.query("id")!!
-                                val name =  req.query("name")!!
+                                val name = req.query("name")!!
 
-                                idLookup.add(Pair(id,name))
+                                idLookup.add(Pair(id, name))
 
                                 text("success")
 
@@ -298,6 +304,9 @@ class WebController2(private val registry: Registry) : HttpHandler {
 
             val startTask = StartAgentTask(registry.overide(context))
             executor.exec(startTask)
+
+            // give it time to start
+            Thread.sleep(5000L);
         }
     }
 
