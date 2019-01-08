@@ -143,6 +143,23 @@ class WebController2(private val registry: Registry) : HttpHandler {
                                         ))
                                 html(page)
                             },
+                            "/{network}/nodes/{node}/apps/{app}/states/{state}" bind Method.GET to { req ->
+                                val network = req.path("network")!!
+                                val node = req.path("node")!!
+                                val state = req.path("state")!!
+                                val app = req.path("app")!!
+
+                                val page = renderTemplate("states.md",
+                                        mapOf("networkName" to network,
+                                                "nodeName" to node,
+                                                "appName" to app,
+                                                "stateName" to state,
+                                                "idLookup" to idLookup
+                                        ))
+                                html(page)
+
+
+                            },
                             "/{network}/nodes/{node}/apps/{app}/states/{state}/all" bind Method.GET to { req ->
                                 val network = req.path("network")!!
                                 val node = req.path("node")!!
@@ -153,8 +170,46 @@ class WebController2(private val registry: Registry) : HttpHandler {
                                 val agentClient = agentClientFactory.createClient(network, node)
 
                                 val query = agentClient.queryState(app, state)
+
+                                val page = renderTemplate("statesAll.md",
+                                        mapOf("networkName" to network,
+                                                "nodeName" to node,
+                                                "appName" to app,
+                                                "stateName" to state,
+                                                "results" to JSONArray(query).toString(2)
+                                        ))
+                                html(page)
+
+
+                            },
+                            "/{network}/nodes/{node}/apps/{app}/states/{state}/all/raw" bind Method.GET to { req ->
+                                val network = req.path("network")!!
+                                val node = req.path("node")!!
+                                val state = req.path("state")!!
+                                val app = req.path("app")!!
+
+                                checkAgentIsRunning(network)
+                                val agentClient = agentClientFactory.createClient(network, node)
+
+                                val query = agentClient.queryState(app, state)
+
                                 json(JSONArray(query))
-//
+
+
+                            },
+                            "/{network}/nodes/{node}/apps/{app}/states/{state}/query" bind Method.GET to { req ->
+                                val network = req.path("network")!!
+                                val node = req.path("node")!!
+                                val state = req.path("state")!!
+                                val app = req.path("app")!!
+                                val id = req.query("id")!!
+
+                                checkAgentIsRunning(network)
+                                val agentClient = agentClientFactory.createClient(network, node)
+
+                                val query = agentClient.queryStateHistory(app, state, id)
+                                json(JSONArray(query))
+
                             },
                             "/{network}/nodes/{node}/apps/{app}/flows/{flow}/metadata" bind Method.GET to { req ->
                                 val network = req.path("network")!!
@@ -167,7 +222,7 @@ class WebController2(private val registry: Registry) : HttpHandler {
                                 val agentClient = agentClientFactory.createClient(network, node)
                                 val query = agentClient.flowMetaData(app, flow)
                                 val metadata = JSONObject(query).toMap()
-                                val annotations = agentClient.flowAnnotations(app,flow)
+                                val annotations = agentClient.flowAnnotations(app, flow)
 
                                 val page = renderTemplate("flowForm.md",
                                         mapOf("networkName" to network,
@@ -181,7 +236,6 @@ class WebController2(private val registry: Registry) : HttpHandler {
                                         ))
                                 html(page)
 
-//
                             },
                             "/{network}/nodes/{node}/apps/{app}/flows/{flow}/run" bind Method.POST to { req ->
                                 val network = req.path("network")!!
@@ -276,6 +330,20 @@ class WebController2(private val registry: Registry) : HttpHandler {
                 .body(data.toString(2))
                 .header("Content-Type", "application/json; charset=utf-8")
 
+    }
+
+    private fun standardUnpacking(req: Request): Map<String, String> {
+        val data = HashMap<String, String>()
+        extractParam(req, data, "network")
+        extractParam(req, data, "node")
+        extractParam(req, data, "flow")
+        extractParam(req, data, "app")
+        return data
+
+    }
+
+    private fun extractParam(req: Request, data: HashMap<String, String>, param: String) {
+        if (req.path(param) != null) data[param] = req.path(param)!!
     }
 
 

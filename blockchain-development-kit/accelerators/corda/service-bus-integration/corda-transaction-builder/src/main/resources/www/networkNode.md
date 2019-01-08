@@ -26,7 +26,7 @@ The following states are available
 ### {{appName}}
 
 {{#states}}
-* [{{.}}](/web/networks/{{networkName}}/nodes/{{nodeName}}/apps/{{appName}}/states/{{.}}/all)
+* [{{.}}](/web/networks/{{networkName}}/nodes/{{nodeName}}/apps/{{appName}}/states/{{.}})
 {{/states}}
 
 {{/apps}}

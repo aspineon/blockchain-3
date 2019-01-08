@@ -499,7 +499,8 @@ th {
 }
 
 body {
-	font-family: 'Helvetica Neue', Helvetica, Arial, serif;
+	//font-family: 'Helvetica Neue', Helvetica, Arial, serif;
+	font-family: Poppins,sans-serif;
 	font-size: 15px;
 	font-weight: 400;
 	line-height: 1.5;
@@ -520,11 +521,12 @@ a:hover {
 }
 
 header {
-	padding-top: 40px;
-	padding-bottom: 40px;
-	font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
+	padding-top: 30px;
+	padding-bottom: 30px;
+	//font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
+	//font-family: Poppins,sans-serif;
 	background: #ec1c24 url(../images/header-bg.jpg) 0 0 repeat-x;
-	border-bottom: solid 1px #275da1
+	border-bottom: solid 2px #444
 }
 
 header h1 {
@@ -593,7 +595,7 @@ a.button {
 	height: 58px;
 	padding-top: 22px;
 	padding-left: 68px;
-	font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
+	//font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
 	font-size: 23px;
 	line-height: 1.2;
 	color: #fff
@@ -952,3 +954,26 @@ footer a:hover {
 
 span.Passed { background-color  : rgba(0, 255, 0, 0.4) }
 span.Failed { background-color	: rgba(255, 0, 0, 0.4) }
+
+
+/* Added by Ian */
+
+a.button {
+  width: inherit;
+  height: inherit;
+  font-family: inherit;
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 3px 5px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 12px;
+  margin: 4px 2px;
+  cursor: pointer;
+}
+
+a.blueButton {background-color: #008CBA;}
+
+a.redButton {background-color: #f44336;}

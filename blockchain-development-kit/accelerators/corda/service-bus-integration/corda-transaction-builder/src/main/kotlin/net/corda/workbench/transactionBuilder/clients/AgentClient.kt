@@ -1,7 +1,6 @@
 package net.corda.workbench.transactionBuilder.clients
 
 import net.corda.workbench.commons.event.EventStore
-import net.corda.workbench.commons.registry.Registry
 import net.corda.workbench.transactionBuilder.events.Repo
 import org.http4k.client.ApacheClient
 import org.http4k.core.Method
@@ -25,6 +24,15 @@ interface AgentClient {
      *                          or fully qualified with the package name
      */
     fun queryState(app: String, stateClassName: String): List<Map<String, Any>>
+
+    /**
+     * Return all data in the vault for the given app and state.
+     *
+     * @param app - The registered app name, e.g. 'refrigerated-transportation'
+     * @param stateClassName - The name of the state class. Can be just a simple name
+     *                          or fully qualified with the package name
+     */
+    fun queryStateHistory(app: String, stateClassName: String, id : String): List<Map<String, Any>>
 
     /**
      * Returns a list of fully qualified of available State classes (classes
@@ -63,6 +71,22 @@ class AgentClientFactoryImpl(es: EventStore) : AgentClientFactory {
 }
 
 class AgentQueryImpl(private val baseUrl: String) : AgentClient {
+    override fun queryStateHistory(app: String, state: String, id: String): List<Map<String, Any>> {
+        val request = Request(Method.GET, "$baseUrl/$app/query/$state/$id")
+        val client = ApacheClient()
+        val resp = client(request)
+
+        if (resp.status.successful) {
+            val results = ArrayList<Map<String, Any>>()
+            val json = JSONArray(resp.body.toString())
+            for (item in json.toList()) {
+                results.add(item as Map<String, Any>)
+            }
+            return results
+        } else {
+            throw RuntimeException("$request failed with $resp")
+        }
+    }
 
 
     override fun queryState(app: String, state: String): List<Map<String, Any>> {
@@ -84,7 +108,12 @@ class AgentQueryImpl(private val baseUrl: String) : AgentClient {
 
 
     override fun listStates(app: String): List<String> {
-        val request = Request(Method.GET, "$baseUrl/$app/states/list")
+        return requestAsJsonArray("$baseUrl/$app/states/list")
+    }
+
+    private fun requestAsJsonArray(url: String): List<String> {
+
+        val request = Request(Method.GET, url)
         val client = ApacheClient()
         val resp = client(request)
 
@@ -98,16 +127,7 @@ class AgentQueryImpl(private val baseUrl: String) : AgentClient {
 
 
     override fun listFlows(app: String): List<String> {
-        val request = Request(Method.GET, "$baseUrl/$app/flows/list")
-        val client = ApacheClient()
-        val resp = client(request)
-
-        if (resp.status.successful) {
-            val json = JSONArray(resp.body.toString())
-            return json.toList() as List<String>
-        } else {
-            throw RuntimeException("$request failed with $resp")
-        }
+        return requestAsJsonArray("$baseUrl/$app/flows/list")
     }
 
     override fun flowAnnotations(app: String, flow: String): Map<String, Any> {

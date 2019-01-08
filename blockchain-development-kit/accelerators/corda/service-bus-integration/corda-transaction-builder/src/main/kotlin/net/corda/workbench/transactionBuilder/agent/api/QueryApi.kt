@@ -4,6 +4,7 @@ import io.javalin.ApiBuilder
 import io.javalin.Context
 import io.javalin.Javalin
 import net.corda.core.contracts.ContractState
+import net.corda.core.node.services.Vault
 import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.reflections.app.RPCHelper
 import net.corda.reflections.reflections.FlowMetaDataExtractor
@@ -16,7 +17,7 @@ import net.corda.workbench.transactionBuilder.CordaAppLoader
 import net.corda.workbench.transactionBuilder.CordaClassLoader
 
 
-class QueryApi (private val registry: Registry){
+class QueryApi(private val registry: Registry) {
 
     // location of the 'corda-local-network' service, which knows about all the nodes.
     val networkManager = "http://corda-local-network:1114"
@@ -51,8 +52,8 @@ class QueryApi (private val registry: Registry){
                             val caller = LiveRpcCaller(client)
 
 
-                            val queryCriteria = QueryCriteria.LinearStateQueryCriteria(contractStateTypes = setOf(clazz ))
-                            val result = caller.vaultQueryBy(criteria = queryCriteria,contractStateType = clazz)
+                            val queryCriteria = QueryCriteria.LinearStateQueryCriteria(contractStateTypes = setOf(clazz))
+                            val result = caller.vaultQueryBy(criteria = queryCriteria, contractStateType = clazz)
                             ctx.json(result.states.reversed().map { it.state.data })
                         }
                     }
@@ -72,18 +73,20 @@ class QueryApi (private val registry: Registry){
                             val idParam = ctx.param("linearId")!!
 
                             val id = UniqueIdentifierResolver().resolveValue(idParam)!!
-                            val externalIds = if (id.externalId != null){
+                            val externalIds = if (id.externalId != null) {
                                 listOf(id.externalId!!)
                             } else {
                                 null
                             }
 
-
                             val queryCriteria = QueryCriteria.LinearStateQueryCriteria(
-                                    contractStateTypes = setOf(clazz ),
+                                    contractStateTypes = setOf(clazz),
                                     uuid = listOf(id.id),
-                                    externalId =externalIds)
-                            val result = caller.vaultQueryBy(criteria = queryCriteria,contractStateType = clazz)
+                                    externalId = externalIds,
+                                    status =  Vault.StateStatus.ALL
+                            )
+                            val result = caller.vaultQueryBy(criteria = queryCriteria,
+                                    contractStateType = clazz)
                             ctx.json(result.states.reversed().map { it.state.data })
                         }
                     }
