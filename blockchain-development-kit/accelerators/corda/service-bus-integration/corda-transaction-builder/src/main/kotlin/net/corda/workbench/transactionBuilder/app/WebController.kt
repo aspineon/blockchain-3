@@ -439,6 +439,9 @@ class WebController2(private val registry: Registry) : HttpHandler {
             if (expectedType == "Long") {
                 return value.toLong()
             }
+            if (expectedType == "Double") {
+                return value.toDouble()
+            }
 
             // todo - other basic types
 //            if (expectedType == "UniqueIdentifier"){
