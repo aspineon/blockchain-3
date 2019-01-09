@@ -25,7 +25,6 @@ class ProcessManager constructor(
         private val logger: Logger = LoggerFactory.getLogger(ProcessManager::class.java)
     }
 
-
     private val sleepTime = 10
     private var monitoring = false
     private val processList = ArrayList<ManagedProcess>()
