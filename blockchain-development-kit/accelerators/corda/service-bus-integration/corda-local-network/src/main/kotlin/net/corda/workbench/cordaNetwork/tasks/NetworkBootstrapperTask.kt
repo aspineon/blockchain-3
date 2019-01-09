@@ -4,12 +4,7 @@ import net.corda.workbench.commons.taskManager.BaseTask
 import net.corda.workbench.commons.taskManager.ExecutionContext
 import net.corda.workbench.commons.taskManager.TaskContext
 import net.corda.workbench.cordaNetwork.runCommand
-import org.apache.logging.log4j.core.impl.ThrowableFormatOptions.FILE_NAME
-import java.io.File
-import java.io.FileOutputStream
-import java.net.URL
-import java.nio.channels.Channels
-import java.nio.channels.ReadableByteChannel
+
 
 /**
  * Runs the network bootstrapper, streaming results

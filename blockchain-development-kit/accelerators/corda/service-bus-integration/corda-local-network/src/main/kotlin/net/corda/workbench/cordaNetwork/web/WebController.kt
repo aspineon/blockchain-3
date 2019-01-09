@@ -96,19 +96,21 @@ class WebController(private val registry: Registry) : HttpHandler {
 
                     "/networks/{network}/deploy" bind Method.POST to { req ->
                         val network = req.path("network")!!
+                        val context = RealContext(network)
+
 
                         // unpack file
                         val receivedForm = MultipartFormBody.from(req)
                         val file = receivedForm.files("cordapp")
                         val filename = file.get(0).filename
-                        val working = File(filename)
-                        working.copyInputStreamToFile(file.get(0).content)
+
+                        val working = File(tempDir(context) + "/" + filename)
+                        working.copyInputStreamToFile(file[0].content)
 
                         val md5Hash = working.md5Hash()
                         val byteCount = working.length()
 
                         // run task
-                        val context = RealContext(network)
                         val executor = buildExecutor(context)
                         val task = DeployCordaAppTask(registry.overide(context), working)
                         executor.exec(task)
@@ -207,7 +209,6 @@ class WebController(private val registry: Registry) : HttpHandler {
                         val network = req.path("network")!!
                         val cordapp = req.path("name")!!
                         val context = RealContext(network)
-                        //val messageSink = buildMessageSink(context)
 
                         val masterCopy = Paths.get(context.workingDir, ".cordapps", cordapp).normalize()
                                 .toAbsolutePath()
@@ -421,6 +422,12 @@ class WebController(private val registry: Registry) : HttpHandler {
         } catch (ex: Exception) {
             throw RuntimeException("Incorrect params passed to Create Network - '${ex.message}'", ex)
         }
+    }
+
+    private fun tempDir(ctx: TaskContext): String {
+        val tmpDir = "${ctx.workingDir}/tmp"
+        File(tmpDir).mkdirs()
+        return tmpDir
     }
 
 
