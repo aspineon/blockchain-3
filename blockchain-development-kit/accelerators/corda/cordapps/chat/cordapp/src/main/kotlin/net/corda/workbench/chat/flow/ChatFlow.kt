@@ -14,7 +14,7 @@ import net.corda.workbench.chat.ChatContract
 import net.corda.workbench.chat.Message
 
 @InitiatingFlow
-@StartableByRPC
+//@StartableByRPC
 class ChatFlow(private val message: String,
                private val linearId: UniqueIdentifier = UniqueIdentifier()) : FlowLogic<SignedTransaction>() {
 
@@ -60,11 +60,12 @@ class ChatFlow(private val message: String,
     }
 
     private fun buildMessage(currentData: Message): Message {
+        // sender of message is interlocutorA.
         if (ourIdentity == currentData.interlocutorA) {
             return Message(message = message, interlocutorA = ourIdentity, interlocutorB = currentData.interlocutorB, linearId = linearId)
         }
         if (ourIdentity == currentData.interlocutorB) {
-            return Message(message = message, interlocutorA = currentData.interlocutorA, interlocutorB = ourIdentity, linearId = linearId)
+            return Message(message = message, interlocutorA = ourIdentity, interlocutorB = currentData.interlocutorA, linearId = linearId)
         }
         throw IllegalArgumentException("$ourIdentity is not part of the conversation")
     }
