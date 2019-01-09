@@ -4,7 +4,7 @@
 ## Nodes
 
 {{#nodes}}
-* [{{organisation}}](/web/networks/{{name}}/nodes/{{organisation}}/status)
+* [{{organisation}}](/web/networks/{{networkName}}/nodes/{{organisation}}/status)
 {{/nodes}}
 
 ## CorDapps

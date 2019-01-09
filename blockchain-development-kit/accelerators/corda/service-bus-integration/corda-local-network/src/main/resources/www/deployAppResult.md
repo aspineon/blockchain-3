@@ -1,4 +1,4 @@
-# {{networkName}}
+# [{{networkName}}](/web/networks/{{networkName}})
 
 Successfully deployed {{fileName}} with {{length}} bytes and {{md5Hash}} 
 MD5 Hash.

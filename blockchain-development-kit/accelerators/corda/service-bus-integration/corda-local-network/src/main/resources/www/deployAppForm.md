@@ -1,7 +1,4 @@
-
-
-
-# {{networkName}}
+# [{{networkName}}](/web/networks/{{networkName}})
 
 Deploy a corda app
 

@@ -4,7 +4,7 @@ enable to basic corda integration services through a native UI
 
 ```bash
 # to start
-docker-compose up -d
+docker-compose pull & docker-compose up -d
 docker ps 
 
 # to stop
