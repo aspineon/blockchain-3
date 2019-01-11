@@ -64,12 +64,15 @@ class WebController(private val registry: Registry) : HttpHandler {
 
                     "/networks/create" bind Method.POST to { req ->
                         val createRequest = unpackCreateNetworkForm(req)
+
+                        println(createRequest)
                         val context = RealContext(createRequest.name)
                         val executor = buildExecutor(context)
                         val scopedRegistry = registry.overide(context)
 
                         executor.exec(CreateNetworkTask(scopedRegistry))
-                        executor.exec(CreateNodesTask(scopedRegistry, createRequest.organisations))
+                        val createOptions = CreateNodesTask.Options(cordaVersion = createRequest.cordaVersion)
+                        executor.exec(CreateNodesTask(scopedRegistry, createRequest.organisations, createOptions))
 
                         val page = renderTemplate("networkCreated.md",
                                 mapOf("networkName" to createRequest.name))
@@ -412,13 +415,14 @@ class WebController(private val registry: Registry) : HttpHandler {
             val params = req.formAsMap()
 
             val name = params["networkName"]!!.single()!!
+            val cordaVersion = params["cordaVersion"]!!.single()!!
             val organisations = params["organisations"]!!
                     .single()!!
                     .trim()
                     .split("\n")
                     .map { it.trim() }
 
-            return CreateNetworkRequest(name, organisations + listOf("O=Notary,L=London,C=GB"))
+            return CreateNetworkRequest(cordaVersion, name, organisations + listOf("O=Notary,L=London,C=GB"))
         } catch (ex: Exception) {
             throw RuntimeException("Incorrect params passed to Create Network - '${ex.message}'", ex)
         }
@@ -431,7 +435,7 @@ class WebController(private val registry: Registry) : HttpHandler {
     }
 
 
-    data class CreateNetworkRequest(val name: String, val organisations: List<String>)
+    data class CreateNetworkRequest(val cordaVersion: String, val name: String, val organisations: List<String>)
 
 
 }

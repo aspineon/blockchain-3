@@ -29,7 +29,7 @@ class ConfigBuilderTask(registry: Registry, private val parties: List<String>, p
         }
     }
 
-    fun generateNodeConfig(nodename: String, baseport: Int, isNotary: Boolean = false): String {
+    private fun generateNodeConfig(nodename: String, baseport: Int, isNotary: Boolean = false): String {
 
         val config = """
             myLegalName="$nodename"
@@ -46,9 +46,8 @@ class ConfigBuilderTask(registry: Registry, private val parties: List<String>, p
                 ]
                 user=user1
             }]
-            webAddress="corda-local-network:${baseport + 3}"
             sshd {
-                port = ${baseport + 4}
+                port = ${baseport + 3}
             }
         """.trimIndent()
 

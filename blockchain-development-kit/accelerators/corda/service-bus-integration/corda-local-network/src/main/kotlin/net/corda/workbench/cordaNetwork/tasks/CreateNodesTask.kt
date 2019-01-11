@@ -14,8 +14,9 @@ import java.lang.RuntimeException
 /**
  * Combine all the actions for creating nodes for a network
  */
-
-class CreateNodesTask(private val registry: Registry, private val parties: List<String>) : BaseTask() {
+class CreateNodesTask(private val registry: Registry,
+                      private val parties: List<String>,
+                      private val options: Options = Options()) : BaseTask() {
     private val ctx = registry.retrieve(TaskContext::class.java)!!
     private val es = registry.retrieve(EventStore::class.java)!!
 
@@ -29,19 +30,19 @@ class CreateNodesTask(private val registry: Registry, private val parties: List<
         for (network in repo.networks()) {
             try {
                 nodeCount += repo.nodes(network.name).size
+            } catch (ignored: Exception) {
             }
-            catch (ignored : Exception){}
         }
-        if (nodeCount + parties.size > 100) {
-            throw RuntimeException("The limit of no more than 100 nodes across all network has been exceeded")
+        if (nodeCount + parties.size > 50) {
+            throw RuntimeException("The limit of no more than 50 nodes across all network has been exceeded")
         }
 
         // allow for partial names etc
         val standardisedParties = parties.map { standardise(it) }
 
-        ConfigBuilderTask(registry, standardisedParties, 10000 + nodeCount * 10)
+        ConfigBuilderTask(registry, standardisedParties, 10000 + nodeCount * 4)
                 .exec(executionContext)
-        NetworkBootstrapperTask(ctx)
+        NetworkBootstrapperTask(ctx, options.cordaVersion)
                 .exec(executionContext)
 
         es.storeEvent(EventFactory.NODES_CREATED(ctx.networkName, standardisedParties))
@@ -58,5 +59,9 @@ class CreateNodesTask(private val registry: Registry, private val parties: List<
             return standardised
         }
     }
+
+
+    data class Options(val cordaVersion: String = "3.2")
+
 
 }

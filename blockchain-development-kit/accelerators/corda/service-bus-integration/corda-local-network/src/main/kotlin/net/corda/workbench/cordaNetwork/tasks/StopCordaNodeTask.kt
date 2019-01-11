@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
  * Tries to shutdown gracefully, if not resort to more brutal means. Domain
  * event are generated to keep track of what has happened to each PID.
  *
- * TODO - consider a cleaner implemetation
+ * TODO - consider a cleaner implementation
  */
 
 class StopCordaNodeTask(registry: Registry, private val nodeName: String) : BaseTask() {
@@ -34,17 +34,19 @@ class StopCordaNodeTask(registry: Registry, private val nodeName: String) : Base
 
     override fun exec(executionContext: ExecutionContext) {
 
-        executionContext.messageSink("$nodeName: Attempting to stop node.")
+        executionContext.messageSink("$nodeName - Attempting to stop node.")
 
         // First try killing the Java process
         val p = processManager.findByLabel(ctx.networkName + ":" + nodeName)
         if (p != null) {
             val pid = getPidOfProcess(p.process)
-            val killed = tryByJavaProcess(executionContext, p.process)
-            if (killed) {
-                es.storeEvent(EventFactory.NODE_STOPPED(ctx.networkName, nodeName, pid, "Shutdown Java process"))
-                executionContext.messageSink("$nodeName: Clean shutdown of node.")
-            }
+            processManager.kill(p.process, true)
+
+            es.storeEvent(EventFactory.NODE_STOPPED(ctx.networkName, nodeName, pid, "Shutdown Java process"))
+            executionContext.messageSink("$nodeName - Shutdown of node.")
+        }
+        else {
+            executionContext.messageSink("$nodeName - Nothing to do - process already stopped.")
         }
 
         // check for any pids without a shutdown event.
@@ -52,6 +54,8 @@ class StopCordaNodeTask(registry: Registry, private val nodeName: String) : Base
             logger.debug("Found possible orphaned $p for $nodeName - trying to kill")
             try {
                 pkill(orphanedPID)
+                executionContext.messageSink("$nodeName - Shutdown of orphanedPID - $orphanedPID")
+
                 es.storeEvent(EventFactory.NODE_STOPPED(ctx.networkName, nodeName, orphanedPID, "Killing possible orphaned PID"))
 
             } catch (ignored: Exception) {
@@ -61,24 +65,6 @@ class StopCordaNodeTask(registry: Registry, private val nodeName: String) : Base
 
     }
 
-
-    fun tryByJavaProcess(executionContext: ExecutionContext, p: Process): Boolean {
-        if (p.isAlive) {
-            try {
-                if (p::class.java.getName().equals("java.lang.UNIXProcess")) {
-                    val f = p::class.java.getDeclaredField("pid");
-                    f.setAccessible(true);
-                    val pid = f.getLong(p);
-                    pkill(pid)
-                }
-                executionContext.messageSink("$nodeName: destroyed running Java process")
-                return true
-            } catch (ex: Exception) {
-                logger.debug("Problem removing process $p - ${ex.message}")
-            }
-        }
-        return false
-    }
 
 
     private fun pkill(pid: Long) {

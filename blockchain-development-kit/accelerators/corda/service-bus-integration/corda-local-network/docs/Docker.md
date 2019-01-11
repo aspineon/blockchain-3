@@ -12,7 +12,7 @@ Run the buildDocker script. This builds the app and creates a new container loca
 ## Running (simple)
 
 ```bash
-docker run -d -p 1114:1114 -p 1115:1115 -p 10000-10200:10000-10200 \
+docker run -d -p 1114:1114 -p 1115:1115 -p 10000-10199:10000-10199 \
 --add-host corda-local-network:127.0.0.1 \
 -e PUBLIC_ADDRESS='127.0.0.1'\
 --name corda-local-network \
