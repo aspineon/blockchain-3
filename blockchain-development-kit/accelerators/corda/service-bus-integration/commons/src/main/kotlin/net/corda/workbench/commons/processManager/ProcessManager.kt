@@ -31,27 +31,42 @@ class ProcessManager constructor(
     private val processMonitors = HashMap<UUID, ProcessMonitor>()
 
 
+    /**
+     * Register a new Process.
+     */
     fun register(process: Process, id: UUID = UUID.randomUUID(), label: String = "") {
         val mp = ManagedProcess(process, id, label)
         processList.add(mp)
         processMonitors[id] = ProcessMonitor(mp, outputSink, errorSink, processCompletedSink)
     }
 
+    /**
+     * Lookup a process using the Java Process class
+     */
     fun findByProcess(process: Process): ProcessInfo? {
         val mp = processList.singleOrNull() { it.process == process }
         return if (mp == null) null else mapToProcessInfo(mp)
     }
 
+    /**
+     * Lookup a process using its UUID
+     */
     fun findById(id: UUID): ProcessInfo? {
         val mp = processList.singleOrNull { it.id == id }
         return if (mp == null) null else mapToProcessInfo(mp)
     }
 
+    /**
+     * Lookup a process using its label
+     */
     fun findByLabel(label: String): ProcessInfo? {
         val mp = processList.singleOrNull { it.label == label }
         return if (mp == null) null else mapToProcessInfo(mp)
     }
 
+    /**
+     * Simply list all running processes
+     */
     fun allProcesses(): List<ProcessInfo> {
         return processList.map { mapToProcessInfo(it) }
     }
@@ -81,29 +96,40 @@ class ProcessManager constructor(
     }
 
 
-
     /**
      * Kill everything - rather brutal, not for everyday use.
      */
     fun killAll() {
         for (p in processList) {
             println("Forcibly killing $p")
-            brutalKill(p.process)
+            kill(p.process)
         }
         processList.clear()
 
     }
 
+    /**
+     * Kill the process
+     */
+    fun kill(process: Process, forcibly : Boolean = false) {
 
-    private fun brutalKill(process: Process) {
         val pid = getPidOfProcess(process)
         if (pid != -1L) {
             pkill(pid)
         }
-        try {
-            process.destroyForcibly()
-        } catch (ignored: Exception) {
+        if (forcibly) {
+            try {
+                process.destroyForcibly()
+            } catch (ignored: Exception) {
+            }
         }
+
+        // remove from out list if its here
+        val mp = processList.singleOrNull() { it.process == process }
+        if (mp != null) {
+            processList.remove(mp)
+        }
+
     }
 
 
@@ -126,16 +152,18 @@ class ProcessManager constructor(
     }
 
     private fun pkill(pid: Long) {
-        logger.debug("using pkill on PID $pid")
-        val pb = ProcessBuilder(listOf("pkill", "-P", pid.toString()))
-                .redirectOutput(ProcessBuilder.Redirect.INHERIT)
-                .redirectError(ProcessBuilder.Redirect.INHERIT)
-                .start()
+        try {
+            logger.debug("using pkill on PID $pid")
+            val pb = ProcessBuilder(listOf("pkill", "-P", pid.toString()))
+                    .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+                    .redirectError(ProcessBuilder.Redirect.INHERIT)
+                    .start()
 
-        pb.waitFor(5, TimeUnit.SECONDS)
-        logger.debug("stdout: " + pb.inputStream.bufferedReader().use { it.readText() })
-        logger.debug("err:" + pb.errorStream.bufferedReader().use { it.readText() })
-
+            pb.waitFor(5, TimeUnit.SECONDS)
+            logger.debug("stdout: " + pb.inputStream.bufferedReader().use { it.readText() })
+            logger.debug("err:" + pb.errorStream.bufferedReader().use { it.readText() })
+        } catch (ignored: Exception) {
+        }
     }
 
     data class ManagedProcess(val process: Process, val id: UUID = UUID.randomUUID(), val label: String = "")
