@@ -40,9 +40,6 @@ class WebController2(private val registry: Registry) : HttpHandler {
     private val agentClientFactory = registry.retrieve(AgentClientFactory::class.java)
     private val es = registry.retrieve(EventStore::class.java)
 
-    // hardcoded to a single app for now
-    //private val appName = "refrigerated-transportation"
-    //private val appName = "chat"
 
     private val idLookup = ArrayList<Pair<String, String>>()
 
@@ -250,7 +247,6 @@ class WebController2(private val registry: Registry) : HttpHandler {
                                 val metadata = agentClient.flowMetaData(app, flow)
                                 val remapper = Remapper(metadata)
                                 val rawData = req.formAsMap().mapValues { remapper.remap(it.key, it.value[0]!!) }
-                                println(rawData)
 
                                 val result = agentClient.runFlow(app, flow, rawData)
 

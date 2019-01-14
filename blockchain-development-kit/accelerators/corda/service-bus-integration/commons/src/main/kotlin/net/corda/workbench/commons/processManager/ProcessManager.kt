@@ -13,8 +13,6 @@ import kotlin.concurrent.thread
 /**
  * Keeps track of running processes
  */
-
-
 class ProcessManager constructor(
         private val outputSink: (String) -> Unit = { msg -> ProcessMonitor.consoleMessageSink(msg) },
         private val errorSink: (String) -> Unit = { msg -> ProcessMonitor.consoleMessageSink(msg) },
@@ -25,8 +23,6 @@ class ProcessManager constructor(
         private val logger: Logger = LoggerFactory.getLogger(ProcessManager::class.java)
     }
 
-    private val sleepTime = 10
-    private var monitoring = false
     private val processList = ArrayList<ManagedProcess>()
     private val processMonitors = HashMap<UUID, ProcessMonitor>()
 
@@ -77,23 +73,6 @@ class ProcessManager constructor(
         return ProcessInfo(process = mp.process, id = mp.id, label = mp.label, monitor = monitor)
     }
 
-    fun monitor() {
-        if (!monitoring) {
-            println("Process monitor started")
-            monitoring = true
-            thread(isDaemon = true) {
-                while (monitoring) {
-                    println("Process monitor checking ${processList.size} processes...")
-                    processList.forEach {
-                        println("  process: ${it.label}, isAlive? ${it.process.isAlive}")
-                    }
-                    println("Process monitor sleeping for $sleepTime...")
-                    Thread.sleep(sleepTime * 1000L)
-                }
-                println("Process monitor stopped")
-            }
-        }
-    }
 
 
     /**
@@ -128,6 +107,7 @@ class ProcessManager constructor(
         val mp = processList.singleOrNull() { it.process == process }
         if (mp != null) {
             processList.remove(mp)
+            processMonitors.remove(mp.id)
         }
 
     }
