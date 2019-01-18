@@ -30,9 +30,7 @@ class EndChatFlow(private val otherParty: Party, private val linearId: UniqueIde
         }
         val currentMessage = items.single()
 
-
         val endMessage = Message(message = "bye", interlocutorA = ourIdentity, interlocutorB = otherParty, linearId = linearId)
-
 
         // build txn
         val participants = listOf(ourIdentity, otherParty)
@@ -53,7 +51,6 @@ class EndChatFlow(private val otherParty: Party, private val linearId: UniqueIde
 
         // complete and notarise
         return subFlow(FinalityFlow(stx))
-
     }
 }
 
