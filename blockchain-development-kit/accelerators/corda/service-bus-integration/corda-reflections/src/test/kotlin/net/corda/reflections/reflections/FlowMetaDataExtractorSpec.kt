@@ -51,8 +51,8 @@ object FlowMetaDataExtractorSpec : Spek({
             assert.that(extractor.flowAnnotations("FSMCurrentStateFlow"),
                     equalTo(mapOf("FSMCurrentState" to emptyMap<String, Any>() as Any)))
 
-            assert.that(extractor.flowAnnotations("FSMActionsForStateFlow"),
-                    equalTo(mapOf("FSMActionsForState" to emptyMap<String, Any>() as Any)))
+            assert.that(extractor.flowAnnotations("FSMActionsFlow"),
+                    equalTo(mapOf("FSMActions" to emptyMap<String, Any>() as Any)))
 
         }
 
@@ -64,7 +64,7 @@ object FlowMetaDataExtractorSpec : Spek({
                     equalTo(setOf("FlowWithAnnotations",
                             "MultipleConstructorFlow",
                             "SimpleFlow",
-                            "FSMActionsForStateFlow",
+                            "FSMActionsFlow",
                             "FSMCurrentStateFlow",
                             "FSMStatesFlow")))
         }

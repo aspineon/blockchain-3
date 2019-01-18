@@ -14,7 +14,6 @@ import java.nio.channels.Channels
 abstract class AbstractDownloadTask() : BaseTask() {
     val downloadCache = System.getProperty("user.home") + "/.corda-local-network/downloads"
 
-
     override fun exec(executionContext: ExecutionContext) {
         downloadJar(executionContext)
     }
@@ -25,7 +24,7 @@ abstract class AbstractDownloadTask() : BaseTask() {
     private fun downloadJar(executionContext: ExecutionContext) {
         try {
             if (!File(fileName).exists()) {
-                executionContext.messageSink("Starting download of $fileName from $externalUrl")
+                executionContext.messageSink("Starting download of $fileName from ${externalUrl}")
 
                 safeDelete("$fileName.download")
                 File(downloadCache).mkdirs()
@@ -36,7 +35,7 @@ abstract class AbstractDownloadTask() : BaseTask() {
                         .transferFrom(readableByteChannel, 0, Long.MAX_VALUE)
                 safeRename("$fileName.download",fileName)
 
-                executionContext.messageSink("Completed download of $fileName from $externalUrl")
+                executionContext.messageSink("Completed download of $fileName from ${externalUrl}")
             }
         } catch (ex: Exception) {
             executionContext.messageSink("Problem downloading $fileName from $externalUrl - ${ex.message}")

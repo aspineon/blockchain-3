@@ -28,10 +28,10 @@ annotation class FSMCurrentState()
 
 /**
  * A "marker" annotation which indicates the flow returns a list of the
- * available actions (flows) based on the provided state
+ * available actions (flows) based on the current state
  */
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
 @MustBeDocumented
-annotation class FSMActionsForState()
+annotation class FSMActions()
 

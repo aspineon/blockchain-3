@@ -12,7 +12,7 @@ import net.corda.core.flows.StartableByRPC
 import net.corda.core.identity.Party
 import net.corda.core.transactions.CoreTransaction
 import net.corda.reflections.annotations.Description
-import net.corda.reflections.annotations.fsm.FSMActionsForState
+import net.corda.reflections.annotations.fsm.FSMActions
 import net.corda.reflections.annotations.fsm.FSMCurrentState
 import net.corda.reflections.annotations.fsm.FSMStates
 import java.lang.RuntimeException
@@ -99,8 +99,8 @@ class FSMCurrentStateFlow(private val linearId: UniqueIdentifier) : FlowLogic<St
 
 @InitiatingFlow
 @StartableByRPC
-@FSMActionsForState
-class FSMActionsForStateFlow(private val state: String) : FlowLogic<List<String>>() {
+@FSMActions
+class FSMActionsFlow(private val state: String) : FlowLogic<List<String>>() {
 
     @Suspendable
     override fun call(): List<String> {

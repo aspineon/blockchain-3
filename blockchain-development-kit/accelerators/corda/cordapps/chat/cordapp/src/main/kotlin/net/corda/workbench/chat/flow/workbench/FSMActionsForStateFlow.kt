@@ -4,13 +4,13 @@ import co.paralleluniverse.fibers.Suspendable
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.*
 import net.corda.reflections.annotations.Description
-import net.corda.reflections.annotations.fsm.FSMActionsForState
+import net.corda.reflections.annotations.fsm.FSMActions
 
 
 @InitiatingFlow
 @StartableByRPC
 @Description("The available flows based on the current FSM state")
-@FSMActionsForState()
+@FSMActions()
 class FSMActionsForStateFlow(private val linearId: UniqueIdentifier) : FlowLogic<List<String>>() {
 
     @Suspendable

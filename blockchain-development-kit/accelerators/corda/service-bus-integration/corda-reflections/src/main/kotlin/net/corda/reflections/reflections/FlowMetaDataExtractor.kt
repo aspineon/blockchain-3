@@ -7,7 +7,7 @@ import net.corda.core.flows.InitiatingFlow
 import net.corda.core.flows.StartableByRPC
 import net.corda.reflections.annotations.Description
 import net.corda.reflections.annotations.facade.DataFacade
-import net.corda.reflections.annotations.fsm.FSMActionsForState
+import net.corda.reflections.annotations.fsm.FSMActions
 import net.corda.reflections.annotations.fsm.FSMCurrentState
 import net.corda.reflections.annotations.fsm.FSMStates
 import kotlin.reflect.KClass
@@ -84,8 +84,8 @@ class FlowMetaDataExtractor(private val packageName: String = "net.corda") {
                 is FSMCurrentState -> {
                     result["FSMCurrentState"] = emptyMap<String,Any>()
                 }
-                is FSMActionsForState -> {
-                    result["FSMActionsForState"] = emptyMap<String,Any>()
+                is FSMActions -> {
+                    result["FSMActions"] = emptyMap<String,Any>()
                 }
                 is DataFacade -> {
                     result["DataFacade"] = emptyMap<String,Any>()
