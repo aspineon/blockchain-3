@@ -17,10 +17,45 @@ docker-compose down
 
 ## UI 
 
-Assuming your Docker host is your localhost (check how your Docker is configured),
+Assuming Docker host is your localhost (check how your Docker is configured),
 then the UIs are at:
 * [http://localhost:1115](corda-local-network)
 * [http://localhost:1116](corda-transaction-builder)
+
+## Using the API 
+
+Assuming  Docker host is your localhost 
+
+```bash
+curl -X POST -H "Content-Type: application/json" http://localhost:1114/demo/nodes/create \
+ --data '["Alice","Bob","Charlie"]'
+```
+
+You can list the nodes with:
+
+```bash
+curl http://localhost:1114/demo/nodes
+```
+
+Or get more info on a particular node with 
+
+```bash
+curl http://localhost:1114/demo/nodes/Alice/config
+curl http://localhost:1114/demo/nodes/Alice/status
+```
+
+And deploy an app with 
+
+```bash
+curl -X POST  http://localhost:1114/demo/apps/<deployed-app-name>/deploy \
+ --data-binary  @<path-to-some-app.jar> 
+```
+
+And finally, start with 
+
+```bash
+curl -X POST  http://corda-local-network:1114/demo/start 
+```
 
 
 ## Problems 
