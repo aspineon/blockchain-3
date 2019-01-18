@@ -10,9 +10,7 @@ import kotlin.collections.ArrayList
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
-import kotlin.reflect.full.functions
-import kotlin.reflect.full.primaryConstructor
-import kotlin.reflect.full.staticFunctions
+import kotlin.reflect.full.*
 
 /**
  * Reflections helper when working with Kotlin KClass.
@@ -80,7 +78,7 @@ class ReflectionsKt(val partyResolver: Resolver<Party> = InMemoryPartyResolver()
         throw RuntimeException("Could not find a matching constructor")
     }
 
-    fun extractFunctionMetaData(function: KFunction<*>): Map<String, Any> {
+    private fun extractFunctionMetaData(function: KFunction<*>): Map<String, Any> {
         val result = HashMap<String, Any>()
         for (cParam in function.parameters) {
             if (cParam.kind == KParameter.Kind.VALUE) {
@@ -131,6 +129,8 @@ class ReflectionsKt(val partyResolver: Resolver<Party> = InMemoryPartyResolver()
         val f = kclazz.primaryConstructor!!
         return extractFunctionMetaData(f)
     }
+
+
 
     fun allConstructorMetaData(kclazz: KClass<*>): List<Map<String, Any>> {
         val result = ArrayList<Map<String, Any>>()

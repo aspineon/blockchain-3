@@ -58,6 +58,7 @@ dependencies {
     compile "org.slf4j:jcl-over-slf4j:1.7.25"
     compile group: 'io.github.classgraph', name: 'classgraph', version: '4.4.7'
 
+    compile files('../commons/lib/workbench-commons.jar')
 
     testCompile group: 'com.natpryce', name: 'hamkrest', version: '1.4.2.2'
     testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
