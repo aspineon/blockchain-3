@@ -59,7 +59,7 @@ echo "Additional gradle flags are '$cleanflags $testflags'"
 
 echo "Building 'commons'"
 cd $script_dir/service-bus-integration/commons
-./gradlew $cleanflags $testflags jar copyJarToLib &&
+./gradlew $cleanflags $testflags jar copyJarToLib 
 if (($?)); then exit -1 ; fi
 
 echo "Building 'corda-reflections'"
