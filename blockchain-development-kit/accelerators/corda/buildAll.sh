@@ -40,7 +40,7 @@ echo "--publish : $PUBLISH"
 
 # Setup build flags
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-if ${TEST}; then
+if [[ ! -z ${TEST} ]]; then
   testflags="test"
   cleanflags="clean"
 else
