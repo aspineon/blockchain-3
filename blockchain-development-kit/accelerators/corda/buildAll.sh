@@ -4,14 +4,55 @@
 # Can be used as the base for a CI build process or a quick way
 # of building and testing locally
 
+# nice named parameters
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
 
-# Setup
+case $key in
+    -t|--test)
+    TEST="Y"
+    shift # past argument
+    ;;
+    --tag)
+    DOCKER_TAG="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -p|--publish)
+    PUBLISH="Y"
+    shift # past argument
+    ;;
+    *)    # unknown option
+    POSITIONAL+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+echo "Flags are"
+echo "--test : $TEST"
+echo "--tag : $DOCKER_TAG"
+echo "--publish : $PUBLISH"
+
+
+# Setup build flags
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-#testflags="test"
-testflags="-x test"
-cleanflags="clean"
+if ${TEST}; then
+  testflags="test"
+  cleanflags="clean"
+else
+  testflags="-x test"
+  cleanflags=""
+fi
+if [[ -z "${DOCKER_TAG}" ]]; then
+  DOCKER_TAG=$(git rev-parse HEAD  | cut -c 1-8)
+fi
+
 echo "Running from $script_dir"
-echo $testflags
+echo "Additional gradle flags are '$cleanflags $testflags'"
 
 
 ###  Building shared jars
@@ -67,6 +108,10 @@ cd $script_dir/service-bus-integration/corda-local-network
 if (($?)); then exit -1 ; fi
 docker build -t corda-local-network  .
 if (($?)); then exit -1 ; fi
+if [[ ! -z ${PUBLISH} ]]; then
+  ./publishDocker.sh ${DOCKER_TAG}
+  if (($?)); then exit -1 ; fi
+fi
 
 
 echo "Building 'corda-transaction-builder' "
@@ -75,6 +120,10 @@ cd $script_dir/service-bus-integration/corda-transaction-builder
 if (($?)); then exit -1 ; fi
 docker build -t corda-transaction-builder  .
 if (($?)); then exit -1 ; fi
+if [[ ! -z ${PUBLISH} ]]; then
+  ./publishDocker.sh ${DOCKER_TAG}
+  if (($?)); then exit -1 ; fi
+fi
 
 
 echo "Building 'service-bus-listener' "
@@ -83,8 +132,12 @@ cd $script_dir/service-bus-integration/service-bus-listener
 if (($?)); then exit -1 ; fi
 docker build -t service-bus-listener  .
 if (($?)); then exit -1 ; fi
+if [[ ! -z ${PUBLISH} ]]; then
+  ./publishDocker.sh ${DOCKER_TAG}
+  if (($?)); then exit -1 ; fi
+fi
 
-echo "Success - everything was built"
+echo "Success - everything was built :) "
 
 
 
