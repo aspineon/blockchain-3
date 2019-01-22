@@ -7,8 +7,8 @@
 
 # Setup
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-testflags="test"
-#testflags="-x test"
+#testflags="test"
+testflags="-x test"
 cleanflags="clean"
 echo "Running from $script_dir"
 echo $testflags
