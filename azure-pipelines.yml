@@ -12,5 +12,8 @@ steps:
 
 - script: |
     cd blockchain-development-kit/accelerators/corda
-    ./buildAll.sh --publish
+    java -version
+    ./buildAll.sh --test
   displayName: 'Run the buildAll.sh script'
+
+
