@@ -7,12 +7,9 @@ pool:
   vmImage: 'Ubuntu 16.04'
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
 
 - script: |
     cd blockchain-development-kit/accelerators/corda
-    java -version
     ./buildAll.sh --test
   displayName: 'Run the buildAll.sh script'
 
