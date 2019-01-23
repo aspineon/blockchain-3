@@ -17,10 +17,10 @@ data class BazaarState(val PartyA: Party,
                        override val linearId: UniqueIdentifier = UniqueIdentifier()):
         LinearState {
 
-fun BuyAndSell(price:Double)
+fun UpdateBalance(price:Double,seller:Party, buyer:Party,_state:BazaarState):BazaarState
 {
-    this.balancePartyA =this.balancePartyA+price
-    this.balancePartyB=this.balancePartyB-price
+  return copy(PartyA = seller,balancePartyA = _state.balancePartyA+price,PartyB = buyer,balancePartyB = _state.balancePartyB-price,
+          bazaarMaintainer =_state.bazaarMaintainer)
 
 }
 }

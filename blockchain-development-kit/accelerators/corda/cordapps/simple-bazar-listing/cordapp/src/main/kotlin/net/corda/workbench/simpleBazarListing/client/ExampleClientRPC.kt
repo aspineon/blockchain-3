@@ -12,6 +12,7 @@ import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.utilities.NetworkHostAndPort
 import net.corda.core.utilities.loggerFor
 import net.corda.workbench.simpleBazarListing.flow.TradeFlow
+import net.corda.workbench.simpleBazarListing.state.TradeState
 import org.slf4j.Logger
 
 

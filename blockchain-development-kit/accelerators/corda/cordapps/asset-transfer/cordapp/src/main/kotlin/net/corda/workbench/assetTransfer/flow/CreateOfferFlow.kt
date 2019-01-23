@@ -33,11 +33,11 @@ class CreateOfferFlow(private val linearId: UniqueIdentifier,
         val inputStateAndRef = items.first()
         val _state = inputStateAndRef.state.data
         val outputstate = _state.AcceptAndValidateOffer(newcounterParty,inspector,appraiser,_state)
-        val createCommand = Command(AssetContract.PlaceOffer(),outputstate.participants.map { it -> it.owningKey })
+        val createOfferCommand = Command(AssetContract.PlaceOffer(),outputstate.participants.map { it -> it.owningKey })
         val builder = TransactionBuilder(notary = notary)
                 .addInputState(inputStateAndRef)
                 .addOutputState(outputstate,ID)
-                .addCommand(createCommand)
+                .addCommand(createOfferCommand)
 
         val ptx = serviceHub.signInitialTransaction(builder)
         val sessions = (outputstate.participants - ourIdentity).map { initiateFlow(it) }.toSet()

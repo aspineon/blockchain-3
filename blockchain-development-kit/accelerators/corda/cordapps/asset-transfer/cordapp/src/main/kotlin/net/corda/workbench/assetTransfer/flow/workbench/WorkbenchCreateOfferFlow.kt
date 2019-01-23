@@ -33,6 +33,6 @@ class WorkbenchCreateOfferFlow(private val linearId: UniqueIdentifier,
 class WorkbenchCreateOfferFlowResponder(val flowSession: FlowSession) : FlowLogic<Unit>() {
     @Suspendable
     override fun call() {
-        println("WorkbenchCreateFlowResponder: nothing to do - just print a message!")
+        println("WorkbenchCreateOfferFlowResponder: nothing to do - just print a message!")
     }
 }

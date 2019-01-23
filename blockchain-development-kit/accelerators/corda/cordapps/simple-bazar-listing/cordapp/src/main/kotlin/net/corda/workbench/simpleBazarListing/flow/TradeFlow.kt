@@ -5,13 +5,12 @@ import net.corda.core.contracts.Command
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.contracts.requireThat
 import net.corda.core.flows.*
-import net.corda.core.identity.Party
 import net.corda.core.node.services.queryBy
 import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
-import net.corda.workbench.simpleBazarListing.contract.ItemContract
-import net.corda.workbench.simpleBazarListing.contract.ItemContract.Companion.ITEM_ID
+import net.corda.workbench.simpleBazarListing.contract.BazaarContract
+import net.corda.workbench.simpleBazarListing.contract.BazaarContract.Companion.ITEM_ID
 import net.corda.workbench.simpleBazarListing.state.BazaarState
 import net.corda.workbench.simpleBazarListing.state.TradeState
 
@@ -31,18 +30,19 @@ class TradeFlow(private val linearId: UniqueIdentifier,private val price:Double,
 
         val inputStateAndRef = items.first()
         val _state = inputStateAndRef.state.data
-        val _tradeState = TradeState(price,name,_state.PartyA,_state.PartyB,_state.bazaarMaintainer)
-        _state.BuyAndSell(price)
-        val createCommand = Command(ItemContract.FinalizeTrade(), listOf(ourIdentity.owningKey))
+        val _tradeState = TradeState(itemPrice= price,itemName = name,buyer=_state.PartyA,seller=_state.PartyB)
+        val outputstate= _state.UpdateBalance(price,_state.PartyA,_state.PartyB,_state)
+        val TradeCommand = Command(BazaarContract.FinalizeTrade(), listOf(ourIdentity.owningKey))
         val builder = TransactionBuilder(notary = notary)
                 .addInputState(inputStateAndRef)
-                .addOutputState(_state, ITEM_ID)
-                .addCommand(createCommand)
+                .addOutputState(outputstate, ITEM_ID)
+                .addCommand(TradeCommand)
 
 
         val stx = serviceHub.signInitialTransaction(builder)
-        return  subFlow(FinalityFlow(stx))
-
+        val finalTX=  subFlow(FinalizeTradeFlow(_tradeState))
+        subFlow(FinalityFlow(stx))
+        return finalTX
 
     }
 

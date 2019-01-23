@@ -8,10 +8,9 @@ import net.corda.core.serialization.CordaSerializable
 @CordaSerializable
 data class TradeState(val itemPrice:Double,
                       val itemName:String,
-                      val bazaarMaintainer:Party,
-                      val partyA :Party,
-                      val partyB :Party,
-                      override val participants: List<Party> = listOf(bazaarMaintainer,partyA,partyB),
+                      val buyer :Party,
+                      val seller :Party,
+                      override val participants: List<Party> = listOf(buyer,seller),
                       override val linearId: UniqueIdentifier = UniqueIdentifier()):
         LinearState {
 

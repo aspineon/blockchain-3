@@ -1,7 +1,7 @@
 package net.corda.workbench.simpleBazarListing.flow
 
 import co.paralleluniverse.fibers.Suspendable
-import net.corda.workbench.simpleBazarListing.contract.ItemContract
+import net.corda.workbench.simpleBazarListing.contract.BazaarContract
 import net.corda.workbench.simpleBazarListing.state.BazaarState
 import net.corda.core.contracts.Command
 import net.corda.core.contracts.requireThat
@@ -18,9 +18,9 @@ class CreateFlow(private val _state:BazaarState) : FlowLogic<SignedTransaction>(
     override fun call(): SignedTransaction {
 
         val notary: Party = serviceHub.networkMapCache.notaryIdentities.first()
-        val createCommand = Command(ItemContract.Create(), listOf(ourIdentity.owningKey))
+        val createCommand = Command(BazaarContract.Create(), listOf(ourIdentity.owningKey))
         val builder = TransactionBuilder(notary = notary)
-                .addOutputState(_state, ItemContract.ITEM_ID)
+                .addOutputState(_state, BazaarContract.ITEM_ID)
                 .addCommand(createCommand)
 
         val stx = serviceHub.signInitialTransaction(builder)
