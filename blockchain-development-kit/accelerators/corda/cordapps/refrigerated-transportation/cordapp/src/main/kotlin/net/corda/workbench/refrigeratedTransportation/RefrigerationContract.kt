@@ -48,6 +48,11 @@ class RefrigerationContract : Contract {
             //"Incorrect number of signers." using (signers.size == 2)
             // todo - who else should be sigining
 
+            // Some basic business rules
+            "Max temp must be > min temp." using (out.maxTemperature > out.minTemperature)
+            "Max humidity must be > min humidity." using (out.maxHumidity > out.minHumidity)
+
+
             "Must initially be in Created state." using (out.state == StateType.Created)
         }
 

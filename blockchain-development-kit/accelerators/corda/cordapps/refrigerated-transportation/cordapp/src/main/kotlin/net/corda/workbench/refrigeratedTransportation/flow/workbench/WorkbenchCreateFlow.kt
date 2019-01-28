@@ -2,9 +2,7 @@ package net.corda.workbench.refrigeratedTransportation.flow.workbench
 
 import co.paralleluniverse.fibers.Suspendable
 import net.corda.core.contracts.UniqueIdentifier
-import net.corda.core.flows.FlowLogic
-import net.corda.core.flows.InitiatingFlow
-import net.corda.core.flows.StartableByRPC
+import net.corda.core.flows.*
 import net.corda.core.identity.Party
 import net.corda.core.utilities.ProgressTracker
 import net.corda.reflections.workbench.TxnResult
@@ -19,7 +17,6 @@ import net.corda.workbench.refrigeratedTransportation.flow.CreateFlow
 @InitiatingFlow
 @StartableByRPC
 class WorkbenchCreateFlow(private val linearId: UniqueIdentifier,
-                          private val owner: Party,
                           private val device: Party,
                           private val supplyChainOwner: Party,
                           private val supplyChainObserver: Party,
@@ -33,9 +30,10 @@ class WorkbenchCreateFlow(private val linearId: UniqueIdentifier,
 
     @Suspendable
     override fun call(): TxnResult {
+
         progressTracker.currentStep = WorkbenchTracker.RUNNING
 
-        val state = Shipment(owner = owner,
+        val state = Shipment(owner = ourIdentity,
                 device = device,
                 supplyChainObserver = supplyChainObserver,
                 supplyChainOwner = supplyChainOwner,
@@ -49,5 +47,7 @@ class WorkbenchCreateFlow(private val linearId: UniqueIdentifier,
         progressTracker.currentStep = WorkbenchTracker.COMPLETED
 
         return buildWorkbenchTxn(txn, ourIdentity)
+
     }
 }
+

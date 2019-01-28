@@ -34,17 +34,18 @@ To connect to a node (in this case Contoso). Note thw password is 'test'
 ssh localhost -p 10023 -l user1 -o UserKnownHostsFile=/dev/null 
 ```
 
-You can now run queries and flows on this node. For example, to create a new Shipment. Note you should 
-create a new 'linearId' for each call 
+You can now run queries and flows on this node. For example see below, to create a new Shipment. _Note you should 
+create a new 'linearId' for each call._ 
 
 ```
-start WorkbenchCreateFlow linearId: 80C68193-9D37-4FF5-919A-982A7E8262D4, owner: WorldWideImporters, device: Device01, supplyChainOwner: WorldWideImporters, supplyChainObserver: WoodgroveBank, minHumidity: 50, maxHumidity: 70, minTemperature : -20, maxTemperature: -10
+start WorkbenchCreateFlow linearId: 80C68193-9D37-4FF5-919A-982A7E8262D4, device: Device01, supplyChainOwner: WorldWideImporters, supplyChainObserver: WoodgroveBank, minHumidity: 50, maxHumidity: 70, minTemperature : -20, maxTemperature: -10
 ```
+
 
 The output will be similar to:
 
 ```
-Mon Jan 28 12:03:17 GMT 2019>>> start WorkbenchCreateFlow linearId: 80C68193-9D37-4FF5-919A-982A7E8262D4, owner: WorldWideImporters, device: Device01, supplyChainOwner: WorldWideImporters, supplyChainObserver: WoodgroveBank, minHumidity: 50, maxHumidity: 70, minTemperature : -20, maxTemperature: -10
+Mon Jan 28 12:03:17 GMT 2019>>> start WorkbenchCreateFlow linearId: 80C68193-9D37-4FF5-919A-982A7E8262D4, device: Device01, supplyChainOwner: WorldWideImporters, supplyChainObserver: WoodgroveBank, minHumidity: 50, maxHumidity: 70, minTemperature : -20, maxTemperature: -10
 
 ✓ Running
     ✓ Locating the Notary
@@ -62,4 +63,10 @@ Mon Jan 28 12:03:17 GMT 2019>>> start WorkbenchCreateFlow linearId: 80C68193-9D3
 ✓ Completed
 ✓ Done
 Flow completed with result: TxnResult(txnHash=9EA67A2536C405D8048D9EDFA682D212099FAD265779E91D5A896AED1031F403, owner=O=WorldWideImporters, L=Shanghai, C=CN, otherParties=[O=Device01, L=London, C=GB], contractProperties=[ContractProperty(name=state, value=Created), ContractProperty(name=owner, value=O=WorldWideImporters, L=Shanghai, C=CN), ContractProperty(name=initiatingCounterparty, value=O=WorldWideImporters, L=Shanghai, C=CN), ContractProperty(name=counterparty, value=O=WorldWideImporters, L=Shanghai, C=CN), ContractProperty(name=previousCounterparty, value=null), ContractProperty(name=device, value=O=Device01, L=London, C=GB), ContractProperty(name=supplyChainOwner, value=O=WorldWideImporters, L=Shanghai, C=CN), ContractProperty(name=supplyChainObserver, value=O=WoodgroveBank, L=London, C=GB), ContractProperty(name=minHumidity, value=50), ContractProperty(name=maxHumidity, value=70), ContractProperty(name=minTemperature, value=-20), ContractProperty(name=maxTemperature, value=-10), ContractProperty(name=complianceSensorType, value=null), ContractProperty(name=complianceSensorReading, value=null), ContractProperty(name=complianceStatus, value=true), ContractProperty(name=complianceDetail, value=null), ContractProperty(name=lastSensorUpdateTimestamp, value=null)])
+```
+
+Data can be viewed with vault queries, for example 
+
+```
+run vaultQuery contractStateType: net.corda.workbench.refrigeratedTransportation.Shipment 
 ```

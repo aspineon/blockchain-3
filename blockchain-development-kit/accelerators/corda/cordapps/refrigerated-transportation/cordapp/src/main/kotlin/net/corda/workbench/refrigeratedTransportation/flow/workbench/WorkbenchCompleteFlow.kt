@@ -3,8 +3,7 @@ package net.corda.workbench.refrigeratedTransportation.flow.workbench
 import co.paralleluniverse.fibers.Suspendable
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.FlowLogic
-import net.corda.core.flows.FlowSession
-import net.corda.core.flows.InitiatedBy
+
 import net.corda.core.flows.InitiatingFlow
 import net.corda.core.flows.StartableByRPC
 import net.corda.core.utilities.ProgressTracker
