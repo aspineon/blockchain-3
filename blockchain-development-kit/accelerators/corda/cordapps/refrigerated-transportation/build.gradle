@@ -1,6 +1,6 @@
 buildscript {
     ext.corda_release_group = 'net.corda'
-    ext.corda_release_version = '3.2-corda'
+    ext.corda_release_version = '3.3-corda'
     ext.corda_gradle_plugins_version = '3.1.0'
     ext.kotlin_version = '1.1.60'
     ext.junit_version = '4.12'
@@ -96,6 +96,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
     }
 }
 
+// TODO - make these ports match 'NodeDriver' 
 task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
     directory "./build/nodes"
     node {
@@ -126,7 +127,7 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
     }
     node {
-        name "O=WorldWideImporters,L=Memphhsis,C=US"
+        name "O=WorldWideImporters,L=Memphsis,C=US"
         p2pPort 10008
         rpcSettings {
             address("localhost:10009")

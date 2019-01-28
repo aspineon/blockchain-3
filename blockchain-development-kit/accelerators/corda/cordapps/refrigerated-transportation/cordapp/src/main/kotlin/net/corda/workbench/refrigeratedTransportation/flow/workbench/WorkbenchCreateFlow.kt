@@ -3,11 +3,10 @@ package net.corda.workbench.refrigeratedTransportation.flow.workbench
 import co.paralleluniverse.fibers.Suspendable
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.FlowLogic
-import net.corda.core.flows.FlowSession
-import net.corda.core.flows.InitiatedBy
 import net.corda.core.flows.InitiatingFlow
 import net.corda.core.flows.StartableByRPC
 import net.corda.core.identity.Party
+import net.corda.core.utilities.ProgressTracker
 import net.corda.reflections.workbench.TxnResult
 import net.corda.workbench.refrigeratedTransportation.Shipment
 import net.corda.workbench.refrigeratedTransportation.flow.CreateFlow
@@ -29,8 +28,12 @@ class WorkbenchCreateFlow(private val linearId: UniqueIdentifier,
                           private val minTemperature: Int,
                           private val maxTemperature: Int) : FlowLogic<TxnResult>() {
 
+
+    override val progressTracker: ProgressTracker = WorkbenchTracker().tracker()
+
     @Suspendable
     override fun call(): TxnResult {
+        progressTracker.currentStep = WorkbenchTracker.RUNNING
 
         val state = Shipment(owner = owner,
                 device = device,
@@ -43,17 +46,8 @@ class WorkbenchCreateFlow(private val linearId: UniqueIdentifier,
                 linearId = linearId)
 
         val txn = subFlow(CreateFlow(state))
-        return buildWorkbenchTxn(txn, ourIdentity)
-    }
-}
+        progressTracker.currentStep = WorkbenchTracker.COMPLETED
 
-/**
- *
- */
-@InitiatedBy(WorkbenchCreateFlow::class)
-class WorkbenchCreateFlowResponder(val flowSession: FlowSession) : FlowLogic<Unit>() {
-    @Suspendable
-    override fun call() {
-        println("WorkbenchCreateFlowResponder: nothing to do - just print a message!")
+        return buildWorkbenchTxn(txn, ourIdentity)
     }
 }

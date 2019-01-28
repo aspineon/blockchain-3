@@ -8,7 +8,7 @@ This is a CorDapp implementation of the Azure Blockchain Workbench
  
 It is based on the [CorDapp Kotlin Template](https://github.com/corda/cordapp-template-kotlin) 
 
-Implementation details are within the 'cordapp' folder, refer to the [README](cordapp/README.md)
+Implementation and usage details are within the 'cordapp' folder, refer to the [README](cordapp/README.md)
 
 
 ## Pre-Requisites
