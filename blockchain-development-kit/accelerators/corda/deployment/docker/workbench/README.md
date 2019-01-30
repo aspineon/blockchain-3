@@ -14,6 +14,20 @@ docker ps
 docker-compose down
 ```
 
+### Ports in use 
+As the containers expose a large number of ports, there is a chance when 
+running on a dev machine or laptop that another process has already taken one 
+or more of these port, in which case Docker will complain. There isn't much 
+you can do other than find a clean host or close down the conflicting processes. 
+The unix commands below will help identify them.
+
+```bash
+sudo lsof -i -P -n | grep LISTEN 
+sudo netstat -tulpn | grep LISTEN
+sudo nmap -sTU -O IP-address-Here
+lsof -i :<portnumber>
+```
+
 # Logspout 
 
 An easy way of tracking docker logs from multiple containers. See also
