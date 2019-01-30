@@ -75,6 +75,7 @@ The unix commands below will help identify them.
 sudo lsof -i -P -n | grep LISTEN 
 sudo netstat -tulpn | grep LISTEN
 sudo nmap -sTU -O IP-address-Here
+lsof -i :<portnumber>
 ```
 
 ## Logspout 
