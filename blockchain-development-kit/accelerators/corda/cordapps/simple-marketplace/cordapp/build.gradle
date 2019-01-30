@@ -42,7 +42,7 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
     testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
     testCompile "junit:junit:$junit_version"
-    compile files('../../../service-bus-integration/commons/lib/workbench-commons.jar')
+    compile files('../../../service-bus-integration/corda-reflections/lib/corda-reflections.jar')
     // Corda integration dependencies
     cordaCompile "$corda_release_group:corda-core:$corda_release_version"
     cordaCompile "$corda_release_group:corda-finance:$corda_release_version"
@@ -72,7 +72,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
         javaParameters = true   // Useful for reflection.
     }
 }
-
+/*
 task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
     directory "./build/nodes"
     node {
@@ -114,10 +114,10 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
         cordapps = ["$corda_release_group:corda-finance:$corda_release_version"]
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
     }
-}
-
+}*/
+/*
 task runExampleClientRPCKotlin(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
-    main = 'com.simpleMarketplace.client.ExampleClientRPCKt'
+    main = 'net.corda.workbench.simpleMarketplace.client.ExampleClientRPCKt'
     args 'localhost:10008'
-}
+}*/

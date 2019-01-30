@@ -23,7 +23,7 @@ fun buildWorkbenchMarketTxn(txn: SignedTransaction, me: Party): TxnResult {
 
 fun buildContractPropertyList(_acceptedSt: AcceptedState): List<ContractProperty> {
     val result = ArrayList<ContractProperty>()
-    result.add(ContractProperty("AvailableItem", _acceptedSt._item))
+    result.add(ContractProperty("AvailableItem", _acceptedSt.item))
     result.add(ContractProperty("owner", _acceptedSt.owner))
     result.add(ContractProperty("buyer", _acceptedSt.buyer))
     result.add(ContractProperty("offeredPrice", _acceptedSt.offeredPrice))
