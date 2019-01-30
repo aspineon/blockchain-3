@@ -1,7 +1,7 @@
 buildscript {
     ext.corda_release_group = 'net.corda'
-    ext.corda_release_version = '3.2-corda'
-    ext.corda_gradle_plugins_version = '3.1.0'
+    ext.corda_release_version = '3.3-corda'
+    ext.corda_gradle_plugins_version = '3.2.1'
     ext.kotlin_version = '1.1.60'
     ext.junit_version = '4.12'
     ext.quasar_version = '0.7.9'
@@ -112,108 +112,37 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
         ]
     }
     node {
-        name "O=ContosoLtd,L=Seatle,C=US"
+        name "O=Buyer,L=London,C=GB"
         p2pPort 10005
         rpcSettings {
-            address("localhost:10006")
-            adminAddress("localhost:11006")
+            address("localhost:10008")
+            adminAddress("localhost:10048")
         }
-        webPort 10007
+        //webPort 10007
         cordapps = [
                 "$project.group:cordapp-contracts-states:$project.version",
                 "$project.group:cordapp:$project.version"
         ]
-        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
+        rpcUsers = [[ username: "user1", "password": "test", "permissions": ["ALL"]]]
     }
     node {
-        name "O=WorldWideImporters,L=Memphhsis,C=US"
-        p2pPort 10008
+        name "O=Owner,L=New York,C=US"
+        p2pPort 10009
         rpcSettings {
-            address("localhost:10009")
-            adminAddress("localhost:11009")
+            address("localhost:10011")
+            adminAddress("localhost:10051")
         }
-        webPort 10010
+        //webPort 10010
         cordapps = [
                 "$project.group:cordapp-contracts-states:$project.version",
                 "$project.group:cordapp:$project.version"
         ]
-        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
-    }
-    node {
-        name "O=NorthwindTraders,L=Copenhagen,C=DK"
-        p2pPort 10011
-        rpcSettings {
-            address("localhost:10012")
-            adminAddress("localhost:11012")
-        }
-        webPort 10013
-        cordapps = [
-                "$project.group:cordapp-contracts-states:$project.version",
-                "$project.group:cordapp:$project.version"
-        ]
-        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
-    }
-    node {
-        name "O=WoodgroveBank,L=london,C=GB"
-        p2pPort 10014
-        rpcSettings {
-            address("localhost:10015")
-            adminAddress("localhost:11005")
-        }
-        webPort 10016
-        cordapps = [
-                "$project.group:cordapp-contracts-states:$project.version",
-                "$project.group:cordapp:$project.version"
-        ]
-        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
-    }
-    node {
-        name "O=Device01,L=london,C=GB"
-        p2pPort 10017
-        rpcSettings {
-            address("localhost:10018")
-            adminAddress("localhost:11008")
-        }
-        webPort 10019
-        cordapps = [
-                "$project.group:cordapp-contracts-states:$project.version",
-                "$project.group:cordapp:$project.version"
-        ]
-        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
-    }
-    node {
-        name "O=Device02,L=Shanghai,C=CN"
-        p2pPort 10020
-        rpcSettings {
-            address("localhost:10021")
-            adminAddress("localhost:11021")
-        }
-        webPort 10022
-        cordapps = [
-                "$project.group:cordapp-contracts-states:$project.version",
-                "$project.group:cordapp:$project.version"
-        ]
-        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
-    }
-    node {
-        name "O=TasmanianTraders,L=Hobart,C=AU"
-        p2pPort 10023
-        rpcSettings {
-            address("localhost:10024")
-            adminAddress("localhost:11025")
-        }
-        webPort 10025
-        cordapps = [
-                "$project.group:cordapp-contracts-states:$project.version",
-                "$project.group:cordapp:$project.version"
-        ]
-        rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
+        rpcUsers = [[username: "user1", "password": "test", "permissions": ["ALL"]]]
     }
 }
 
-
-task runTemplateClient(type: JavaExec) {
+task runExampleClientRPCKotlin(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
-    main = 'com.template.ClientKt'
-    args 'localhost:10006'
+    main = 'net.corda.workbench.simpleMarketplace.client.ExampleClientRPCKt'
+    args 'localhost:10008'
 }

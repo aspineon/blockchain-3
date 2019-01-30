@@ -25,7 +25,7 @@ class WorkbenchMarketFlow(private val linearId: UniqueIdentifier = UniqueIdentif
     override fun call(): TxnResult {
 
         val _item = AvailableItem(description,price, StateType.available)
-        val txn = subFlow(MarketFlow.Initiator(_item,offeredPrice,buyer))
+        val txn = subFlow(MarketFlow(_item,offeredPrice,buyer))
         return buildWorkbenchMarketTxn(txn, ourIdentity)
     }
 }

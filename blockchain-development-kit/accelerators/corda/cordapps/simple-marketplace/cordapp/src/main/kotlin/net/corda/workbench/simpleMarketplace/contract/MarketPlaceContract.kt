@@ -16,7 +16,8 @@ class MarketPlaceContract : Contract {
         val ID = "net.corda.workbench.simpleMarketplace.contract.MarketPlaceContract"
     }
 
-
+    // A transaction is considered valid if the verify() function of the contract of each of the transaction's input
+    // and output states does not throw an exception.
     override fun verify(tx: LedgerTransaction) {
         val command = tx.commands.requireSingleCommand<Commands.CreateTransfert>()
         requireThat {
@@ -32,6 +33,7 @@ class MarketPlaceContract : Contract {
 
 
     interface Commands : CommandData {
+
         class CreateTransfert : Commands
     }
 }

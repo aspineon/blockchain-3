@@ -1,4 +1,4 @@
-package com.simpleMarketplace.client
+package net.corda.workbench.simpleMarketplace.client
 
 
 import net.corda.client.rpc.CordaRPCClient
@@ -22,17 +22,23 @@ private class ExampleClientRPC {
         private fun logState(state: StateAndRef<AcceptedState>) = logger.info("{}", state.state.data)
     }
 
+    /**
+     * Launch with rpcClient a new MarketFlow and check , by querying the vault ,
+     * what we have saved in the db
+     *
+     */
     fun main(args: Array<String>) {
         require(args.size == 1) { "Usage: ExampleClientRPC <node address>" }
         val nodeAddress = NetworkHostAndPort.parse(args[0])
         val client = CordaRPCClient(nodeAddress)
-
+        val connection = client.start("user1", "test")
+        val proxy = connection.proxy
         // Can be amended in the com.simpleMarketplace.MainKt file.
-        val proxy = client.start("user1", "test").proxy
-        val otherpartyName = CordaX500Name("PartyB", "New York", "US")
+        //val proxy = client.start("user1", "test").proxy
+        val otherpartyName = CordaX500Name("Buyer", "New York", "US")
         val second = proxy.wellKnownPartyFromX500Name(otherpartyName)
         val _item = AvailableItem("XYZ", 800.00)
-        val signedTx = proxy.startTrackedFlowDynamic(MarketFlow.Initiator::class.java,_item,800.00, second)
+        val signedTx = proxy.startFlowDynamic(MarketFlow::class.java,_item,800.00, second)
                 .returnValue
                 .get()
 
@@ -42,7 +48,7 @@ private class ExampleClientRPC {
 
         // Log the 'placed' IOU states and listen for new ones.
         snapshot.states.forEach { logState(it) }
-
+        connection.notifyServerAndClose()
 
     }
 }

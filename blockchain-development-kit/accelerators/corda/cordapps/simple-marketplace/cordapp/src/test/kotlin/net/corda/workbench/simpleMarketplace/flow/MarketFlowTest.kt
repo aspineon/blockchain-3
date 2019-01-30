@@ -74,7 +74,7 @@ class CreateFlowTests {
 
     /**
      * The basic happy path. The flow is run and is completed, signed by the seller
-     * and committed to the sellers vault.
+     * and committed to the seller's and buyer's vault.
      */
     @Test
     fun flowHappyPath() {
@@ -87,7 +87,7 @@ class CreateFlowTests {
         val av = AvailableItem(description = "item01",price = 100.00)
 
 //        val item = AcceptedState(owner = owner, buyer = buyer,offeredPrice = 100.00)
-        val flow = MarketFlow.Initiator(av,100.00,buyer)
+        val flow = MarketFlow(av,100.00,buyer)
         val future = a.startFlow(flow)
         mockNetwork.runNetwork()
 
