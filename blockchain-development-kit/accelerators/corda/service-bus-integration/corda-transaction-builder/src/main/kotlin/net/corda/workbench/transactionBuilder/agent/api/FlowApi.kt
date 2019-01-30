@@ -58,7 +58,10 @@ class FlowApi(private val registry: Registry) {
                             val data = JSONObject(ctx.body()).toMap()
 
                             try {
+                                println("running flow")
                                 val result = runner.run<Any>(ctx.param("name")!!, data)
+                                println("flow result is")
+                                println(result)
                                 ctx.json(mapOf("success" to true, "result" to result))
                             } catch (ex: Exception) {
                                 ctx.json(mapOf("success" to false, "message" to ex.message))
