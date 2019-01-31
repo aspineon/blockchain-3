@@ -78,3 +78,6 @@ crashlytics-build.properties
 
 # docs related
 docs/virtualenv/
+
+
+cordapp/out
