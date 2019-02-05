@@ -18,6 +18,7 @@ import net.corda.workbench.transactionBuilder.booleanQueryParam
 
 import org.json.JSONObject
 import rx.functions.Action1
+import java.util.*
 import javax.servlet.http.HttpServletResponse
 
 
@@ -31,10 +32,15 @@ class FlowApi(private val registry: Registry) {
 
             app.routes {
                 ApiBuilder.get("flows/list") { ctx ->
-                    val appConfig = lookupAppConfig(ctx)!!
-                    val extractor = FlowMetaDataExtractor(appConfig.scannablePackages[0])
 
-                    ctx.json(extractor.availableFlows())
+                    val appConfig = lookupAppConfig(ctx)
+                    if (appConfig != null) {
+                        val extractor = FlowMetaDataExtractor(appConfig.scannablePackages[0])
+                        ctx.json(extractor.availableFlows())
+                    }
+                    else {
+                        ctx.json(Collections.EMPTY_LIST)
+                    }
                 }
                 ApiBuilder.path("flows/:name") {
                     app.routes {

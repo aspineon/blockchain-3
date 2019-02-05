@@ -15,6 +15,7 @@ import net.corda.workbench.commons.registry.Registry
 import net.corda.workbench.transactionBuilder.CordaAppConfig
 import net.corda.workbench.transactionBuilder.CordaAppLoader
 import net.corda.workbench.transactionBuilder.CordaClassLoader
+import java.util.*
 
 
 class QueryApi(private val registry: Registry) {
@@ -32,10 +33,14 @@ class QueryApi(private val registry: Registry) {
 
             app.routes {
                 ApiBuilder.get("states/list") { ctx ->
-                    val appConfig = lookupAppConfig(ctx)!!
-                    val extractor = StateMetaDataExtractor(appConfig.scannablePackages[0])
-
-                    ctx.json(extractor.availableStates())
+                    val appConfig = lookupAppConfig(ctx)
+                    if (appConfig != null) {
+                        val extractor = StateMetaDataExtractor(appConfig.scannablePackages[0])
+                        ctx.json(extractor.availableStates())
+                    }
+                    else {
+                        ctx.json(Collections.EMPTY_LIST)
+                    }
                 }
                 ApiBuilder.path("query") {
                     app.routes {

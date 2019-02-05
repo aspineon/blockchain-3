@@ -8,6 +8,7 @@ import net.corda.workbench.commons.processManager.ProcessManager
 import net.corda.workbench.commons.registry.Registry
 import net.corda.workbench.commons.taskManager.*
 import net.corda.workbench.transactionBuilder.clients.AgentClientFactory
+import net.corda.workbench.transactionBuilder.clients.CordaAppInfo
 import net.corda.workbench.transactionBuilder.clients.LocalNetworkClient
 import net.corda.workbench.transactionBuilder.events.EventFactory
 import net.corda.workbench.transactionBuilder.events.Repo
@@ -83,15 +84,7 @@ class WebController2(private val registry: Registry) : HttpHandler {
 
                                 val apps = localNetworkClient.cordapps(network)
                                 for (app in apps) {
-                                    val name = app.name
-
-                                    val data = localNetworkClient.downloadCordapp(network, name)
-                                    val jarFile = File(tempDir(context) + "/" + name)
-                                    jarFile.writeBytes(data)
-                                    es.storeEvent(EventFactory.CORDAPP_DOWNLOAD(network, app.name, app.md5Hash))
-
-                                    val deployTask = DeployCordaAppTask(registry.overide(context), jarFile, name.removeSuffix(".jar"))
-                                    executor.exec(deployTask)
+                                    doDeployCordaApp(app, network, context, executor)
                                 }
 
                                 val startTask = StartAgentTask(registry.overide(context))
@@ -290,6 +283,23 @@ class WebController2(private val registry: Registry) : HttpHandler {
                     )
             )
     )
+
+    private fun doDeployCordaApp(app: CordaAppInfo, network: String, context: RealContext, executor: BlockingTasksExecutor) {
+        try {
+            val name = app.name
+
+            val data = localNetworkClient.downloadCordapp(network, name)
+            val jarFile = File(tempDir(context) + "/" + name)
+            jarFile.writeBytes(data)
+            es.storeEvent(EventFactory.CORDAPP_DOWNLOAD(network, app.name, app.md5Hash))
+
+            val deployTask = DeployCordaAppTask(registry.overide(context), jarFile, name.removeSuffix(".jar"))
+            executor.exec(deployTask)
+        } catch (re: Exception) {
+            // todo - should be return results back for UI to display
+            println("Problem deploying $app - ${re.message}")
+        }
+    }
 
 
     override fun invoke(p1: Request) = routes(p1)
