@@ -31,7 +31,7 @@ class ApiController(private val registry: Registry) {
                     val jarFile = File(tempDir(taskContext) + "/" + appName + ".jar")
                     jarFile.writeBytes(data)
 
-                    val deployTask = DeployCordaAppTask(registry.overide(taskContext), jarFile, appName)
+                    val deployTask = DeployCordaAppTask(registry.overide(taskContext), jarFile, appName,true)
                     executor.exec(deployTask)
 
                     ctx.json(successMessage("successfully deployed $appName to $networkName"))

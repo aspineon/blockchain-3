@@ -15,7 +15,10 @@ import java.net.URLClassLoader
 import java.util.*
 
 
-class DeployCordaAppTask(registry: Registry, private val cordapp: File, private val registeredName: String) : BaseTask() {
+class DeployCordaAppTask(registry: Registry,
+                         private val cordapp: File,
+                         private val registeredName: String,
+                         private val generateDefaultConfig: Boolean = false) : BaseTask() {
 
     val ctx = registry.retrieve(TaskContext::class.java)
     val es = registry.retrieve(EventStore::class.java)
@@ -36,13 +39,16 @@ class DeployCordaAppTask(registry: Registry, private val cordapp: File, private 
             val classLoader = URLClassLoader(arrayOf(cordaURL))
             val loader = CordaAppLoader()
             loader.scan(classLoader)
-            return loader.allApps().single()
+            return if (loader.allApps().isEmpty() && generateDefaultConfig) {
+                CordaAppConfig(UUID.randomUUID(), jarFile.name, listOf("com.r3", "net.corda"))
+            } else {
+                loader.allApps().single()
+            }
         } catch (ex: Exception) {
             throw RuntimeException("Couldn't find a valid registry file at " +
                     "'src/main/resources/META-INF/services/net.corda.workbench.Registry.json' for ${jarFile.name}")
 
         }
-
     }
 
 }

@@ -3,6 +3,7 @@ package net.corda.workbench.transactionBuilder.agent.api
 import io.javalin.ApiBuilder
 import io.javalin.Context
 import io.javalin.Javalin
+import net.corda.core.utilities.loggerFor
 
 import net.corda.reflections.app.RPCHelper
 import net.corda.reflections.reflections.FlowMetaDataExtractor
@@ -13,18 +14,23 @@ import net.corda.workbench.commons.event.EventStore
 import net.corda.workbench.commons.event.Filter
 import net.corda.workbench.commons.registry.Registry
 import net.corda.workbench.transactionBuilder.CordaAppConfig
-import net.corda.workbench.transactionBuilder.CordaAppLoader
+import net.corda.workbench.transactionBuilder.CordaAppLoader2
 import net.corda.workbench.transactionBuilder.booleanQueryParam
+import net.corda.workbench.transactionBuilder.clients.AgentQueryImpl
+import net.corda.workbench.transactionBuilder.events.Repo
 
 import org.json.JSONObject
+import org.slf4j.Logger
 import rx.functions.Action1
 import java.util.*
 import javax.servlet.http.HttpServletResponse
 
 
 class FlowApi(private val registry: Registry) {
-    val networkManager: String = "http://corda-local-network:1114"
-    val loader: CordaAppLoader = CordaAppLoader().scan()
+    private val networkManager: String = "http://corda-local-network:1114"
+    private val logger: Logger = loggerFor<FlowApi>()
+    private val repo = registry.retrieve(Repo::class.java)
+
 
     fun register() {
         val app = registry.retrieve(Javalin::class.java)
@@ -35,10 +41,10 @@ class FlowApi(private val registry: Registry) {
 
                     val appConfig = lookupAppConfig(ctx)
                     if (appConfig != null) {
+                        logger.debug("Listing flows for {}, using package {}", appConfig.name, appConfig.scannablePackages[0])
                         val extractor = FlowMetaDataExtractor(appConfig.scannablePackages[0])
                         ctx.json(extractor.availableFlows())
-                    }
-                    else {
+                    } else {
                         ctx.json(Collections.EMPTY_LIST)
                     }
                 }
@@ -115,20 +121,15 @@ class FlowApi(private val registry: Registry) {
     }
 
     private fun lookupAppConfig(ctx: Context): CordaAppConfig? {
+        val network = ctx.param("network")!!
         val app = ctx.param("app")!!
-        return loader.findApp(app)
+
+        val config = repo.cordaAppConfig(network, app)
+        logger.debug("app config for {} is {}", app, config)
+        return config
     }
 
-//    private fun scannablePackages(ctx: Context): List<String> {
-//        val network = ctx.param("network")!!
-//        val app = ctx.param("app")!!
-//        return registry.retrieve(EventStore::class.java)
-//                .retrieve(Filter(aggregateId = network))
-//                .filter { it.type == "CordaAppDeployed" && app == it.payload["appname"] }
-//                .fold(emptyList()) { _, event ->
-//                    event.payload["scannablePackages"] as List<String>
-//                }
-//    }
+
 }
 
 data class NodeConfig(val legalName: String, val port: Int) {

@@ -1,5 +1,6 @@
 package net.corda.workbench.transactionBuilder.clients
 
+import net.corda.core.utilities.loggerFor
 import net.corda.workbench.commons.event.EventStore
 import net.corda.workbench.transactionBuilder.events.Repo
 import org.http4k.client.ApacheClient
@@ -7,6 +8,7 @@ import org.http4k.core.Method
 import org.http4k.core.Request
 import org.json.JSONArray
 import org.json.JSONObject
+import org.slf4j.Logger
 import java.lang.RuntimeException
 import java.util.ArrayList
 
@@ -32,7 +34,7 @@ interface AgentClient {
      * @param stateClassName - The name of the state class. Can be just a simple name
      *                          or fully qualified with the package name
      */
-    fun queryStateHistory(app: String, stateClassName: String, id : String): List<Map<String, Any>>
+    fun queryStateHistory(app: String, stateClassName: String, id: String): List<Map<String, Any>>
 
     /**
      * Returns a list of fully qualified of available State classes (classes
@@ -71,6 +73,9 @@ class AgentClientFactoryImpl(es: EventStore) : AgentClientFactory {
 }
 
 class AgentQueryImpl(private val baseUrl: String) : AgentClient {
+
+    private val logger: Logger = loggerFor<AgentQueryImpl>()
+
     override fun queryStateHistory(app: String, state: String, id: String): List<Map<String, Any>> {
         val request = Request(Method.GET, "$baseUrl/$app/query/$state/$id")
         val client = ApacheClient()
@@ -112,13 +117,14 @@ class AgentQueryImpl(private val baseUrl: String) : AgentClient {
     }
 
     private fun requestAsJsonArray(url: String): List<String> {
-
+        logger.debug("requestAsJsonArray {}", url)
         val request = Request(Method.GET, url)
         val client = ApacheClient()
         val resp = client(request)
 
         if (resp.status.successful) {
             val json = JSONArray(resp.body.toString())
+            logger.debug("reply {}",resp.body.toString() )
             return json.toList() as List<String>
         } else {
             throw RuntimeException("$request failed with $resp")

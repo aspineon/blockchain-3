@@ -14,7 +14,6 @@ import kotlin.collections.HashMap
 
 class CordaAppLoader {
     private val configs = ArrayList<CordaAppConfig>()
-    private val lookup = HashMap<String, CordaAppConfig?>()
 
     companion object {
         private val logger: Logger = loggerFor<CordaAppLoader>()
@@ -49,36 +48,6 @@ class CordaAppLoader {
         return configs
     }
 
-    /**
-     * Find a matching app by id or slug or null not found
-     */
-    fun findApp(path: String): CordaAppConfig? {
-        if (lookup.containsKey(path)) {
-            return lookup.get(path)
-        } else {
-
-            var result: CordaAppConfig?
-            result = configs.firstOrNull { it.id.toString().equals(path, true) }
-            if (result == null) {
-                result = configs.firstOrNull { path.equals(it.slug, ignoreCase = true) }
-            }
-            if (result == null) {
-                result = configs.firstOrNull { checkSlugs(path, it.slugs) }
-            }
-            lookup.put(path, result)
-            return result
-        }
-
-    }
-
-    private fun checkSlugs(path: String, slugs: List<String>?): Boolean {
-        if (slugs != null) {
-            for (slug in slugs) {
-                if (path.equals(slug, ignoreCase = true)) return true
-            }
-        }
-        return false
-    }
 
     private fun processJson(fileName: String, json: String, sourceFile: File) {
         val mapper = ObjectMapper().registerModule(KotlinModule())

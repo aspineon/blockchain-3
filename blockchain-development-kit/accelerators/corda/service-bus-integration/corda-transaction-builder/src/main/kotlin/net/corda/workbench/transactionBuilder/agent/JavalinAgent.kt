@@ -4,6 +4,7 @@ import io.javalin.Javalin
 import net.corda.workbench.commons.event.FileEventStore
 import net.corda.workbench.commons.registry.Registry
 import net.corda.workbench.transactionBuilder.agent.api.*
+import net.corda.workbench.transactionBuilder.events.Repo
 
 class JavalinAgent(private val port: Int) {
 
@@ -32,7 +33,9 @@ class JavalinAgent(private val port: Int) {
 
         val dataDir = System.getProperty("user.home") + "/.corda-transaction-builder/events"
         val registry = Registry()
-        registry.store(FileEventStore().load(dataDir))
+        val es = FileEventStore().load(dataDir)
+        registry.store(es)
+        registry.store(Repo(es))
         registry.store(app)
 
         PingApi(registry).register()

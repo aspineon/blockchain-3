@@ -33,13 +33,6 @@ object CordaAppLoaderSpec : Spek({
             assert.that(loader.allApps().size, equalTo(1))
         }
 
-        it("should find config by slug or id") {
-            val loader = CordaAppLoader().scan(classLoader)
-//19D3B4FA-FBB1-4FB3-9435-A9B32D9C4486
-            assert.that(loader.findApp("312651FE-90EE-4F10-B6BF-CD9FF62AE5C8")!!.name, equalTo("Chat App"))
-            assert.that(loader.findApp("chat")!!.name, equalTo("Chat App"))
-            assert.that(loader.findApp("unknown"), equalTo(null as CordaAppConfig?))
-        }
 
     }
 })

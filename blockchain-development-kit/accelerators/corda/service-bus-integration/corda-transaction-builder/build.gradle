@@ -88,6 +88,10 @@ dependencies {
     compile "com.google.guava:guava:19.0"
 
 
+    compile "org.slf4j:slf4j-simple:1.7.25"
+
+
+
 
     // some example local cordapps for now
     //compile files('../../cordapps/refrigerated-transportation/lib/refrigerated-transportation.jar')

@@ -58,5 +58,24 @@ object DeployCordaAppTaskSpec : Spek({
             assert.that({ task.exec() }, throws<RuntimeException>())
         }
 
+
+        it("should generate default config if 'generateDefaultConfig' flag set ") {
+
+            File("${ctx.workingDir}").deleteRecursively()
+            es.truncate()
+
+            val task = DeployCordaAppTask(registry,
+                    File("src/test/resources/cordapps/badapp.jar"),
+                    "broken",
+                    true)
+            task.exec()
+
+            val ev = es.retrieve().last()
+            assert.that(ev.type, equalTo("CordaAppDeployed"))
+            assert.that(ev.payload["scannablePackages"] as List<String>, equalTo( listOf("com.r3","net.corda")))
+            assert.that(ev.payload["appname"] as String, equalTo( "broken"))
+
+        }
+
     }
 })

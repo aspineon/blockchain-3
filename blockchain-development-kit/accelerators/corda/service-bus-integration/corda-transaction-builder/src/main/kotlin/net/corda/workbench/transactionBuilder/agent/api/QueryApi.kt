@@ -7,22 +7,20 @@ import net.corda.core.contracts.ContractState
 import net.corda.core.node.services.Vault
 import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.reflections.app.RPCHelper
-import net.corda.reflections.reflections.FlowMetaDataExtractor
 import net.corda.reflections.reflections.LiveRpcCaller
 import net.corda.reflections.reflections.StateMetaDataExtractor
 import net.corda.reflections.resolvers.UniqueIdentifierResolver
 import net.corda.workbench.commons.registry.Registry
 import net.corda.workbench.transactionBuilder.CordaAppConfig
-import net.corda.workbench.transactionBuilder.CordaAppLoader
 import net.corda.workbench.transactionBuilder.CordaClassLoader
+import net.corda.workbench.transactionBuilder.events.Repo
 import java.util.*
 
 
 class QueryApi(private val registry: Registry) {
 
-    // location of the 'corda-local-network' service, which knows about all the nodes.
     val networkManager = "http://corda-local-network:1114"
-    val loader: CordaAppLoader = CordaAppLoader().scan()
+    val repo = registry.retrieve(Repo::class.java)
 
 
     fun register() {
@@ -46,9 +44,10 @@ class QueryApi(private val registry: Registry) {
                     app.routes {
                         ApiBuilder.get(":state") { ctx ->
                             val config = lookupNodeConfig(ctx)
-                            println(config)
                             val clazzName = ctx.param("state")!!
-                            val clazz = lookupClass<ContractState>(clazzName)
+
+                            val appConfig = lookupAppConfig(ctx)!!
+                            val clazz = lookupClass<ContractState>(clazzName,appConfig.name)
 
                             // todo - need to inject in the correct IP address - simple case only works on dev
                             val helper = RPCHelper("corda-local-network:${config.port}")
@@ -67,7 +66,8 @@ class QueryApi(private val registry: Registry) {
                         ApiBuilder.get(":state/:linearId") { ctx ->
                             val config = lookupNodeConfig(ctx)
                             val clazzName = ctx.param("state")!!
-                            val clazz = lookupClass<ContractState>(clazzName)
+                            val appConfig = lookupAppConfig(ctx)!!
+                            val clazz = lookupClass<ContractState>(clazzName,appConfig.name)
 
                             // todo - need to inject in the correct IP address - simple case only works on dev
                             val helper = RPCHelper("corda-local-network:${config.port}")
@@ -114,14 +114,15 @@ class QueryApi(private val registry: Registry) {
     }
 
     fun lookupAppConfig(ctx: Context): CordaAppConfig? {
+        val network = ctx.param("network")!!
         val app = ctx.param("app")!!
-        return loader.findApp(app)
+        return repo.cordaAppConfig(network,app)
 
     }
 
-    private inline fun <reified T> lookupClass(name: String): Class<T> {
+    private inline fun <reified T> lookupClass(className: String, appName : String): Class<T> {
 
-        return CordaClassLoader().lookupClass(name)
+        return CordaClassLoader().lookupClass(className, appName + ".jar")
     }
 
 

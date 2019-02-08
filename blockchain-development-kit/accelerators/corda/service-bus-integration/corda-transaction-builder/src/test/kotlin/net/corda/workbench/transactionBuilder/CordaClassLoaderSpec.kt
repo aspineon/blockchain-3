@@ -19,7 +19,7 @@ object CordaClassLoaderSpec : Spek({
         it("should load a class") {
 
             val loader = CordaClassLoader()
-            val clazz = loader.lookupClass<Any>("AccountState")
+            val clazz = loader.lookupClass<Any>("AccountState", null)
 
             assert.that(clazz.name, equalTo("net.corda.workbench.transactionBuilder.AccountState"))
 
@@ -28,7 +28,7 @@ object CordaClassLoaderSpec : Spek({
         it("should not throw exception for a missing class") {
 
             val loader = CordaClassLoader()
-            assert.that({ loader.lookupClass<Any>("MissingClass") }, throws<RuntimeException>())
+            assert.that({ loader.lookupClass<Any>("MissingClass", null) }, throws<RuntimeException>())
         }
 
     }

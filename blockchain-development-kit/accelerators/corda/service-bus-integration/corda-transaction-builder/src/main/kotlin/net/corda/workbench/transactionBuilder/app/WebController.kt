@@ -293,10 +293,14 @@ class WebController2(private val registry: Registry) : HttpHandler {
             jarFile.writeBytes(data)
             es.storeEvent(EventFactory.CORDAPP_DOWNLOAD(network, app.name, app.md5Hash))
 
-            val deployTask = DeployCordaAppTask(registry.overide(context), jarFile, name.removeSuffix(".jar"))
+            val deployTask = DeployCordaAppTask(registry.overide(context),
+                    jarFile,
+                    name.removeSuffix(".jar"),
+                    true)
+
             executor.exec(deployTask)
         } catch (re: Exception) {
-            // todo - should be return results back for UI to display
+            // todo - should be returning results back for UI to display
             println("Problem deploying $app - ${re.message}")
         }
     }
