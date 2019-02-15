@@ -28,6 +28,15 @@ class ApiController(private val registry: Registry) {
 
     fun register(app: Javalin) {
 
+        ApiBuilder.path("networks") {
+            app.routes {
+                ApiBuilder.get("ls") { ctx ->
+                    ctx.json(repo.networks())
+                }
+            }
+        }
+
+
         ApiBuilder.path(":networkName") {
 
             app.routes {

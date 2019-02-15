@@ -47,9 +47,10 @@ object EventFactory {
 
     }
 
-    fun NETWORK_CREATED(network: String): Event {
+    fun NETWORK_CREATED(network: String, id: UUID = UUID.randomUUID()): Event {
         return Event(type = "NetworkCreated",
-                aggregateId = network)
+                aggregateId = network,
+                payload = mapOf("id" to id.toString()))
 
     }
 

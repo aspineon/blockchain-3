@@ -26,15 +26,17 @@ object RepoSpec : Spek({
         }
 
         it("should return available networks") {
-            es.storeEvent(EventFactory.NETWORK_CREATED("networkA"))
-            es.storeEvent(EventFactory.NETWORK_CREATED("networkB"))
+            val id1 = UUID.randomUUID()
+            val id2 = UUID.randomUUID()
+            es.storeEvent(EventFactory.NETWORK_CREATED("networkA", id1))
+            es.storeEvent(EventFactory.NETWORK_CREATED("networkB", id2))
             es.storeEvent(EventFactory.NETWORK_STARTED("networkA"))
 
 
             val networks = repo.networks()
             assertThat(networks.size, equalTo(2))
-            assertThat(networks[0], equalTo(NetworkInfo("networkA", "Running")))
-            assertThat(networks[1], equalTo(NetworkInfo("networkB", "Never Started")))
+            assertThat(networks[0], equalTo(NetworkInfo("networkA", "Running", id1)))
+            assertThat(networks[1], equalTo(NetworkInfo("networkB", "Never Started", id2)))
         }
 
 
@@ -94,10 +96,10 @@ object RepoSpec : Spek({
 
 
         it("should return list of deployed cordapps") {
-            es.storeEvent(EventFactory.CORDAPP_DEPLOYED("net1","app1.jar",123,"hash1"))
-            es.storeEvent(EventFactory.CORDAPP_DEPLOYED("net2","app1.jar",123,"hash1"))
-            es.storeEvent(EventFactory.CORDAPP_DEPLOYED("net1","app2.jar",999,"hash2"))
-            es.storeEvent(EventFactory.CORDAPP_DEPLOYED("net1","app1.jar",321,"hash3"))
+            es.storeEvent(EventFactory.CORDAPP_DEPLOYED("net1", "app1.jar", 123, "hash1"))
+            es.storeEvent(EventFactory.CORDAPP_DEPLOYED("net2", "app1.jar", 123, "hash1"))
+            es.storeEvent(EventFactory.CORDAPP_DEPLOYED("net1", "app2.jar", 999, "hash2"))
+            es.storeEvent(EventFactory.CORDAPP_DEPLOYED("net1", "app1.jar", 321, "hash3"))
 
             assertThat(repo.deployedCordapps("net1").size, equalTo(2))
             assertThat(repo.deployedCordapps("net1")[0].name, equalTo("app1.jar"))
@@ -115,7 +117,6 @@ object RepoSpec : Spek({
             assertThat(repo.deployedCordapps("netX").size, equalTo(0))
 
         }
-
 
 
     }

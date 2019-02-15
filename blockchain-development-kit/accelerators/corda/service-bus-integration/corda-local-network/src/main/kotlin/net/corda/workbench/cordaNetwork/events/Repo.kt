@@ -16,7 +16,11 @@ class Repo(val es: EventStore) {
                 .forEach { ev ->
                     when {
                         ev.type == "NetworkCreated" -> {
-                            networks[ev.aggregateId!!] = mutableMapOf("name" to ev.aggregateId!!)
+                            val data = mutableMapOf("name" to ev.aggregateId!!)
+                            if (ev.payload.containsKey("id")) {
+                                data["id"] = ev.payload["id"] as String
+                            }
+                            networks[ev.aggregateId!!] = data
                         }
                         ev.type == "NetworkStarted" -> {
                             val data = networks[ev.aggregateId]
@@ -101,14 +105,14 @@ class Repo(val es: EventStore) {
     /**
      * The list of deployed apps as recorded in the event store.
      */
-    fun deployedCordapps(network: String) : List<CordaAppInfo> {
+    fun deployedCordapps(network: String): List<CordaAppInfo> {
         val apps = HashMap<String, CordaAppInfo>()
 
         es.retrieve(Filter(aggregateId = network, type = "CordappDeployed"))
                 .forEach { ev ->
                     val name = ev.payload["name"] as String
                     val info = CordaAppInfo(name = name,
-                    size = ev.payload["size"] as Int,
+                            size = ev.payload["size"] as Int,
                             md5Hash = ev.payload["md5Hash"] as String,
                             deployedAt = Date(ev.timestamp)
 
@@ -123,11 +127,23 @@ class Repo(val es: EventStore) {
     }
 }
 
-data class NetworkInfo(val name: String, val status: String) {
+data class NetworkInfo(val name: String, val status: String, val id: UUID) {
     companion object {
         fun fromMap(data: Map<String, String>): NetworkInfo {
-            return NetworkInfo(name = data["name"]!!,
-                    status = data.getOrDefault("status", "Never Started"))
+            val status = data.getOrDefault("status", "Never Started")
+
+            if (data.containsKey("id")) {
+
+                return NetworkInfo(name = data["name"]!!,
+                        status = status,
+                        id = UUID.fromString(data["id"]))
+            } else {
+                // TODO - this is temporary to work around old test data
+                println("WARNING - no network id for ${data["name"]} - generating random default")
+                return NetworkInfo(name = data["name"]!!,
+                        status = status,
+                        id = UUID.randomUUID())
+            }
         }
     }
 }
