@@ -16,6 +16,7 @@ import java.io.File
 import net.corda.workbench.commons.registry.Registry
 import net.corda.workbench.cordaNetwork.events.Repo
 import net.corda.workbench.cordaNetwork.tasks.*
+import java.util.*
 
 
 class ApiController(private val registry: Registry) {
@@ -42,14 +43,18 @@ class ApiController(private val registry: Registry) {
             app.routes {
                 ApiBuilder.post("nodes/create") { ctx ->
 
+                    println("Creating following nodes" + ctx.body())
+
                     val (networkName, taskContext, executor) = standardUnpacking(ctx)
                     @Suppress("UNCHECKED_CAST")
                     val nodes = JSONArray(ctx.body()).toList() as List<String>
 
-                    executor.exec(CreateNetworkTask(registry.overide(taskContext)))
+                    val networkId = UUID.randomUUID()
+                    executor.exec(CreateNetworkTask(registry.overide(taskContext), networkId))
                     executor.exec(CreateNodesTask(registry.overide(taskContext), nodes))
 
-                    ctx.json(successMessage("successfully created network $networkName"))
+                    val payload = mapOf("networkId" to networkId) as Map<String, Any>
+                    ctx.json(successMessage("successfully created network $networkName", payload))
                 }
 
                 ApiBuilder.post("apps/:appname/deploy") { ctx ->
@@ -164,7 +169,6 @@ class ApiController(private val registry: Registry) {
         }
 
 
-
     }
 
     private fun buildMessageSink(context: TaskContext): ((TaskLogMessage) -> Unit) {
@@ -201,6 +205,10 @@ class ApiController(private val registry: Registry) {
 
     private fun successMessage(msg: String): MutableMap<String, Any> {
         return mutableMapOf("message" to msg)
+    }
+
+    private fun successMessage(msg: String, payload: Map<String, Any>): MutableMap<String, Any> {
+        return mutableMapOf("message" to msg, "payload" to payload)
     }
 
 
