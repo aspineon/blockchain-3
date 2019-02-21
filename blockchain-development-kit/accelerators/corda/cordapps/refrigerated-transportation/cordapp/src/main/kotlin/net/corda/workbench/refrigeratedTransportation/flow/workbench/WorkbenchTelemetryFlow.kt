@@ -7,6 +7,7 @@ import net.corda.core.flows.FlowSession
 import net.corda.core.flows.InitiatedBy
 import net.corda.core.flows.InitiatingFlow
 import net.corda.core.flows.StartableByRPC
+import net.corda.core.utilities.ProgressTracker
 import net.corda.reflections.workbench.TxnResult
 import net.corda.workbench.refrigeratedTransportation.Telemetry
 import net.corda.workbench.refrigeratedTransportation.flow.IngestTelemetryFlow
@@ -22,22 +23,15 @@ class WorkbenchTelemetryFlow(private val linearId: UniqueIdentifier,
                              private val temperature: Int,
                              private val humidity: Int) : FlowLogic<TxnResult>() {
 
+    override val progressTracker: ProgressTracker = WorkbenchTracker().tracker()
+
+
     @Suspendable
     override fun call(): TxnResult {
+        progressTracker.currentStep = WorkbenchTracker.RUNNING
         val telemetry = Telemetry(temperature = temperature, humidity = humidity)
         val txn = subFlow(IngestTelemetryFlow(linearId, telemetry))
-
+        progressTracker.currentStep = WorkbenchTracker.COMPLETED
         return buildWorkbenchTxn(txn, ourIdentity)
-    }
-}
-
-/**
- *
- */
-@InitiatedBy(WorkbenchTelemetryFlow::class)
-class WorkbenchTelemetryFlowResponder(val flowSession: FlowSession) : FlowLogic<Unit>() {
-    @Suspendable
-    override fun call() {
-        println("WorkbenchTelemetryFlowResponder: nothing to do - just print a message!")
     }
 }

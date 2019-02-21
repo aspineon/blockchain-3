@@ -6,6 +6,10 @@ import io.github.classgraph.ClassInfoList
 import net.corda.core.flows.InitiatingFlow
 import net.corda.core.flows.StartableByRPC
 import net.corda.reflections.annotations.Description
+import net.corda.reflections.annotations.facade.DataFacade
+import net.corda.reflections.annotations.fsm.FSMActions
+import net.corda.reflections.annotations.fsm.FSMCurrentState
+import net.corda.reflections.annotations.fsm.FSMStates
 import kotlin.reflect.KClass
 
 
@@ -64,16 +68,33 @@ class FlowMetaDataExtractor(private val packageName: String = "net.corda") {
         val kclazz = Class.forName(clazzInfo.name).kotlin as KClass<Any>
         assertIsRunnableFlow(kclazz)
 
-        val annotations = kclazz.annotations
+
 
         val result = HashMap<String,Any>()
-        for (annotation in annotations) {
+
+
+        for (annotation in kclazz.annotations) {
             when(annotation) {
                 is Description -> {
-                    result["description"] = annotation.text
+                    result["Description"] = annotation.text
                 }
+                is FSMStates -> {
+                    result["FSMStates"] = emptyMap<String,Any>()
+                }
+                is FSMCurrentState -> {
+                    result["FSMCurrentState"] = emptyMap<String,Any>()
+                }
+                is FSMActions -> {
+                    result["FSMActions"] = emptyMap<String,Any>()
+                }
+                is DataFacade -> {
+                    result["DataFacade"] = emptyMap<String,Any>()
+                }
+
             }
         }
+
+
 
         return result;
     }

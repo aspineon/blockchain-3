@@ -2,8 +2,8 @@
 
 This is a basic porting of the Ethereum Solidity contract into a CorDapp. By design, it 
 is as similar to the original as possible. But as many Blockchain
-concepts are implemented differently in Corda, there is some re-architecting needed for a
-production ready implementation.
+concepts are implemented differently in Corda, some changes should be considered for a 
+production system.
 
 ## Organisation vs. Individual Identity
 
@@ -15,14 +15,15 @@ shipments when responsibility is transferred).
 ## Single State
 
 All state is contained within a single `State` object, "Shipment", which matches the design of the Solidity 
-contract. It would be more natural in Corda to break this down into more discrete concepts,
+contract. It would be more natural in Corda to break this down into more discrete concepts, so that 
+each party on see and signs what is relevant to them.
 for example:
 
-* the contract parameters (which never change)
+* the contract parameters (a reference state which never change)
 * telemetry 
 * contract state 
+* shipper
 
-https://docs.corda.net/head/design/reference-states/design.html
 
 ## Over signing of transactions 
 

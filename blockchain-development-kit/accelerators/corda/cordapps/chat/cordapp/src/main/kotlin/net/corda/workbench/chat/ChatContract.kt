@@ -53,8 +53,6 @@ class ChatContract : Contract {
             "Only one input state should be consumed when chatting." using (tx.inputs.size == 1)
             "Only one output state should be created when chatting." using (tx.outputs.size == 1)
 
-
-
             val out = tx.outputsOfType<Message>().single()
             val signers = command.signers.toSet()
             println("Signers are : ${signers.size}")

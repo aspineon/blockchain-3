@@ -20,13 +20,57 @@ import net.corda.testing.node.User
  * 5. Run the "Debug CorDapp" remote debug run configuration.
  */
 fun main(args: Array<String>) {
-    val user = User("user1", "test", permissions = setOf("ALL"))
-    driver(DriverParameters(isDebug = true, waitForAllNodesToFinish = true)) {
-        val (partyA, partyB) = listOf(
-                startNode(providedName = CordaX500Name("PartyA", "London", "GB"), rpcUsers = listOf(user)),
-                startNode(providedName = CordaX500Name("PartyB", "New York", "US"), rpcUsers = listOf(user))).map { it.getOrThrow() }
 
-        startWebserver(partyA)
-        startWebserver(partyB)
+    val user = User("user1", "test", permissions = setOf("ALL"))
+    driver(DriverParameters(waitForAllNodesToFinish = true, startNodesInProcess = true)) {
+        val nodeFutures = listOf(
+                startNode(
+                        providedName = CordaX500Name("ContosoLtd", "Seatle", "US"),
+                        customOverrides = mapOf("rpcSettings.address" to "localhost:10021",
+                                "rpcSettings.adminAddress" to "localhost:10022",
+                                "sshd.port" to 10023),
+                        rpcUsers = listOf(user)),
+                startNode(
+                        providedName = CordaX500Name("WorldWideImporters", "Shanghai", "CN"),
+                        customOverrides = mapOf("rpcSettings.address" to "localhost:10031",
+                                "rpcSettings.adminAddress" to "localhost:10032",
+                                "sshd.port" to 10033),
+                        rpcUsers = listOf(user)),
+                startNode(
+                        providedName = CordaX500Name("NorthwindTraders", "Copenhagen", "DK"),
+                        customOverrides = mapOf("rpcSettings.address" to "localhost:10041",
+                                "rpcSettings.adminAddress" to "localhost:10042",
+                                "sshd.port" to 10043),
+                        rpcUsers = listOf(user)),
+                startNode(
+                        providedName = CordaX500Name("WoodgroveBank", "London", "GB"),
+                        customOverrides = mapOf("rpcSettings.address" to "localhost:10051",
+                                "rpcSettings.adminAddress" to "localhost:10052",
+                                "sshd.port" to 10053),
+                        rpcUsers = listOf(user)),
+                startNode(
+                        providedName = CordaX500Name("Device01", "London", "GB"),
+                        customOverrides = mapOf("rpcSettings.address" to "localhost:10061",
+                                "rpcSettings.adminAddress" to "localhost:10062",
+                                "sshd.port" to 10063),
+                        rpcUsers = listOf(user)),
+                startNode(
+                        providedName = CordaX500Name("Device02", "Shanghai", "CN"),
+                        customOverrides = mapOf("rpcSettings.address" to "localhost:10071",
+                                "rpcSettings.adminAddress" to "localhost:10072",
+                                "sshd.port" to 10073),
+                        rpcUsers = listOf(user)),
+                startNode(
+                        providedName = CordaX500Name("TasmanianTraders", "Hobart", "AU"),
+                        customOverrides = mapOf("rpcSettings.address" to "localhost:10081",
+                                "rpcSettings.adminAddress" to "localhost:10082",
+                                "sshd.port" to 10083),
+                        rpcUsers = listOf(user)))
+
+
+        val nodes = nodeFutures.map { it.getOrThrow() }
+        println(nodes)
+
+
     }
 }

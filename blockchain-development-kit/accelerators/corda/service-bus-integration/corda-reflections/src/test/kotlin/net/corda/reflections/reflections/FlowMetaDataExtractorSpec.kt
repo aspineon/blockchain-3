@@ -39,15 +39,34 @@ object FlowMetaDataExtractorSpec : Spek({
         }
 
         it("should return description annotation flowAnnotations") {
-            assert.that(extractor.flowAnnotations("FlowWithAnnotations"), equalTo(mapOf("description" to "Hello World") as Map<String, Any>))
+            assert.that(extractor.flowAnnotations("FlowWithAnnotations"), equalTo(mapOf("Description" to "Hello World") as Map<String, Any>))
             assert.that(extractor.flowAnnotations("SimpleFlow"), equalTo(emptyMap()))
             assert.that({ extractor.flowAnnotations("NotRpcFlow") }, throws<RuntimeException>())
         }
 
+        it("should return FSM annotations") {
+            assert.that(extractor.flowAnnotations("FSMStatesFlow"),
+                    equalTo(mapOf("FSMStates" to emptyMap<String, Any>() as Any)))
+
+            assert.that(extractor.flowAnnotations("FSMCurrentStateFlow"),
+                    equalTo(mapOf("FSMCurrentState" to emptyMap<String, Any>() as Any)))
+
+            assert.that(extractor.flowAnnotations("FSMActionsFlow"),
+                    equalTo(mapOf("FSMActions" to emptyMap<String, Any>() as Any)))
+
+        }
+
+
         it("should extract all available flows") {
             val result = extractor.availableFlows()
 
-            assert.that(result, equalTo(listOf("FlowWithAnnotations", "MultipleConstructorFlow", "SimpleFlow")))
+            assert.that(result.toSet(),
+                    equalTo(setOf("FlowWithAnnotations",
+                            "MultipleConstructorFlow",
+                            "SimpleFlow",
+                            "FSMActionsFlow",
+                            "FSMCurrentStateFlow",
+                            "FSMStatesFlow")))
         }
 
     }

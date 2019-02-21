@@ -33,7 +33,7 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
     compile group: 'org.json', name: 'json', version: '20180813'
 
-    compile files('../../../service-bus-integration/corda-reflections/lib/corda-reflections.jar')
+    compile files('../../../service-bus-integration/commons/lib/workbench-commons.jar')
 
     testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
     testCompile "junit:junit:$junit_version"

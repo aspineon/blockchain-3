@@ -11,7 +11,7 @@ fun createDirListProcess(): Process {
 
 fun createNoOpProcess(): Process {
 
-    return ProcessBuilder(listOf("/usr/bin/false")).start()
+    return ProcessBuilder(listOf("false")).start()
 }
 
 fun createSleepProcess(duration: Int = 5): Process {

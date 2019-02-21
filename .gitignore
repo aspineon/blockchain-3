@@ -292,3 +292,22 @@ __pycache__/
 .DS_Store
 *.iml
 
+blockchain-development-kit/accelerators/corda/cordapps/simple-bazar-listing/cordapp/out/production/classes/net/corda/workbench/simpleBazarListing/flow/FinalizeTradeFlowFlowResponder$call$signedTransactionFlow$1.class
+blockchain-development-kit/accelerators/corda/cordapps/simple-bazar-listing/cordapp/out/production/classes/net/corda/workbench/simpleBazarListing/flow/CreateFlow$CreateFlowResponder$call$signedTransactionFlow$1.class
+blockchain-development-kit/accelerators/corda/cordapps/basic-provenance/cordapp/out/production/classes/net/corda/workbench/basicProvenance/flow/CreateFlow$CreateFlowResponder$call$signedTransactionFlow$1.class
+blockchain-development-kit/accelerators/corda/cordapps/asset-transfer/cordapp/out/production/classes/net/corda/workbench/assetTransfer/flow/CreateFlow$CreateFlowResponder$call$signedTransactionFlow$1.class
+blockchain-development-kit/accelerators/corda/cordapps/simple-bazar-listing/cordapp/out/production/classes/net/corda/workbench/simpleBazarListing/flow/TradeFlowFlowResponder$call$signedTransactionFlow$1.class
+blockchain-development-kit/accelerators/corda/cordapps/basic-provenance/cordapp/out/production/classes/net/corda/workbench/basicProvenance/flow/TransferCompleteFlowResponder$call$signedTransactionFlow$1.class
+blockchain-development-kit/accelerators/corda/cordapps/simple-marketplace/cordapp/out/production/classes/net/corda/workbench/simpleMarketplace/client/ExampleClientRPC.class
+blockchain-development-kit/accelerators/corda/cordapps/simple-marketplace/cordapp/out/production/classes/net/corda/workbench/simpleMarketplace/client/ExampleClientRPC$Companion.class
+blockchain-development-kit/accelerators/corda/cordapps/simple-marketplace/cordapp/out/integrationTest/classes/com/simpleMarketplace/DriverBasedTests.class
+blockchain-development-kit/accelerators/corda/cordapps/simple-marketplace/cordapp/out/integrationTest/classes/com/simpleMarketplace/DriverBasedTests$node webserver test$1.class
+blockchain-development-kit/accelerators/corda/cordapps/simple-marketplace/cordapp/out/production/classes/net/corda/workbench/simpleMarketplace/flow/MarketFlow$Companion.class
+blockchain-development-kit/accelerators/corda/cordapps/simple-marketplace/cordapp/out/production/classes/net/corda/workbench/simpleMarketplace/flow/MarketFlow$Companion$VERIFYING_TRANSACTION.class
+blockchain-development-kit/accelerators/corda/cordapps/simple-marketplace/cordapp/out/production/classes/net/corda/workbench/simpleMarketplace/flow/MarketFlow$Companion$SIGNING_TRANSACTION.class
+blockchain-development-kit/accelerators/corda/cordapps/simple-marketplace/cordapp/out/production/classes/net/corda/workbench/simpleMarketplace/flow/MarketFlow$Companion$GENERATING_TRANSACTION.class
+blockchain-development-kit/accelerators/corda/cordapps/simple-marketplace/cordapp/out/production/classes/net/corda/workbench/simpleMarketplace/flow/MarketFlow$Companion$GATHERING_SIGS.class
+blockchain-development-kit/accelerators/corda/cordapps/simple-marketplace/cordapp/out/production/classes/net/corda/workbench/simpleMarketplace/flow/MarketFlow$Companion$FINALISING_TRANSACTION.class
+blockchain-development-kit/accelerators/corda/cordapps/simple-marketplace/cordapp/out/production/classes/net/corda/workbench/simpleMarketplace/client/ExampleClientRPCKt.class
+blockchain-development-kit/accelerators/corda/cordapps/simple-marketplace/cordapp/out/integrationTest/classes/com/simpleMarketplace/DriverBasedTests$node test$1.class
+blockchain-development-kit/accelerators/corda/cordapps/simple-marketplace/cordapp/out/integrationTest/classes/META-INF/cordapp_integrationTest.kotlin_module

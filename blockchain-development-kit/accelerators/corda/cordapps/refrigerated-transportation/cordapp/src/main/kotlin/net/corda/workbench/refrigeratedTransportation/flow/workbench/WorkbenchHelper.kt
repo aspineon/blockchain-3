@@ -2,6 +2,7 @@ package net.corda.workbench.refrigeratedTransportation.flow.workbench
 
 import net.corda.core.identity.Party
 import net.corda.core.transactions.SignedTransaction
+import net.corda.core.utilities.ProgressTracker
 import net.corda.reflections.workbench.ContractProperty
 import net.corda.reflections.workbench.TxnResult
 import net.corda.workbench.refrigeratedTransportation.Shipment
@@ -37,4 +38,14 @@ fun buildContractPropertyList(shipment: Shipment): List<ContractProperty> {
     result.add(ContractProperty("complianceDetail", shipment.complianceDetail))
     result.add(ContractProperty("lastSensorUpdateTimestamp", shipment.lastSensorUpdateTimestamp))
     return result
+}
+
+/**
+ * A standard ProgressTracker.
+ */
+class WorkbenchTracker {
+    object RUNNING : ProgressTracker.Step("Running")
+    object COMPLETED : ProgressTracker.Step("Completed")
+
+    fun tracker() = ProgressTracker(RUNNING,COMPLETED)
 }

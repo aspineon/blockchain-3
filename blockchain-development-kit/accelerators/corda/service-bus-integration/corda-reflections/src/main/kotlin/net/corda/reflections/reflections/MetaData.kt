@@ -3,7 +3,7 @@ package net.corda.reflections.reflections
 import kotlin.reflect.KClass
 
 /**
- * The metadata actionAvailable for a single param
+ * The metadata avialble for a single param
  */
 data class ParamMetaData(val kclazz : KClass<*>,
                          val optional : Boolean = false,

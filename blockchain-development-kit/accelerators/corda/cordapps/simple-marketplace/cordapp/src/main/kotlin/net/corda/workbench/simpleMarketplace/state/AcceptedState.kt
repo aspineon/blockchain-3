@@ -5,11 +5,16 @@ import net.corda.core.contracts.LinearState
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.identity.Party
 import net.corda.core.serialization.CordaSerializable
-
+/**
+ * AcceptedState contains the object of the transaction .
+ *
+ * See https://github.com/Azure-Samples/blockchain/blob/master/blockchain-workbench/application-and-smart-contract-samples/simple-marketplace/ethereum/SimpleMarketplace.sol
+ * for reference model under Ethereum.
+ */
 @CordaSerializable
 class AcceptedState(var owner: Party,
                     var buyer: Party,
-                    var _item: AvailableItem,
+                    var item: AvailableItem,
                     var offeredPrice: Double,
                     override val linearId: UniqueIdentifier = UniqueIdentifier()) : ContractState, LinearState {
 
@@ -22,9 +27,12 @@ class AcceptedState(var owner: Party,
         return result.toList()
     }
 
-
+    /**
+     * This function allow to change the item status
+     * to approved*
+     */
 
     fun ChangeStateTypeToApproved() {
-        this._item._state = StateType.approved
+        this.item._state = StateType.approved
     }
 }

@@ -22,7 +22,7 @@ class FileEventStore : EventStore {
 
         if (File(directory).exists()) {
             // using extension function walk
-            File(directory).walk().forEach {
+            File(directory).walk().sortedBy { it.name }.forEach {
                 if (it.name.endsWith(".json")) {
                     val content = it.readText()
                     val json = JSONObject(content)

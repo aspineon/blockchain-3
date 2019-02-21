@@ -38,6 +38,7 @@ class ItemContract : Contract {
 
     private fun verifyTransfer(tx: LedgerTransaction, signers: Set<PublicKey>) = requireThat {
         "Only one item state should be transfer." using (tx.outputStates.size == 1)
+        "Only one item state should be in input." using (tx.inputStates.size == 1)
         val _item = tx.outputStates.single() as ItemState
         "Item must be set on transfer" using (_item.state==StateType.onTrasfer)
     }
@@ -45,6 +46,7 @@ class ItemContract : Contract {
 
     private fun verifyTransferComplete(tx: LedgerTransaction, signers: Set<PublicKey>) = requireThat {
         "Only one item state should be transfer." using (tx.outputStates.size == 1)
+        "Only one item state should be in input." using (tx.inputStates.size == 1)
         val _item = tx.outputStates.single() as ItemState
         "Item must be set on transfer" using (_item.state==StateType.completed)
     }
