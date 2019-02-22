@@ -144,6 +144,24 @@ class ApiController(private val registry: Registry) {
                         ctx.contentType("octet-stream")
                         ctx.result(key)
                     }
+
+                    ApiBuilder.post("start") { ctx ->
+                        val nodeName = ctx.param("nodeName")!!
+
+
+                        val (networkName, taskContext, executor) = standardUnpacking(ctx)
+
+                        if (!isNetworkRunning(networkName)) {
+                            val overrideRegistry = registry.overide(taskContext)
+                            val tasks = listOf(StopCordaNodeTask(overrideRegistry,nodeName),
+                                    StartCordaNodeTask(overrideRegistry,nodeName))
+                            executor.exec(tasks)
+
+                            ctx.json(successMessage("started $nodeName on $networkName - please wait for start to complete"))
+                        } else {
+                            throw RuntimeException("network $networkName is already running")
+                        }
+                    }
                 }
 
                 ApiBuilder.get("tasks/history") { ctx ->

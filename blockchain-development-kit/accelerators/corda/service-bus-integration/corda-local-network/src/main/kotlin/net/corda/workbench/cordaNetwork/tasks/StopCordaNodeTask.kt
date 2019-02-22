@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit
  * TODO - consider a cleaner implementation
  */
 
-class StopCordaNodeTask(registry: Registry, private val nodeName: String) : BaseTask() {
+class StopCordaNodeTask(registry: Registry, private val node: String) : BaseTask() {
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(StopCordaNodeTask::class.java)
     }
@@ -30,7 +30,7 @@ class StopCordaNodeTask(registry: Registry, private val nodeName: String) : Base
     private val ctx = registry.retrieve(TaskContext::class.java)
     private val es = registry.retrieve(EventStore::class.java)
     private val processManager = registry.retrieve(ProcessManager::class.java)
-
+    private val nodeName = standardiseNodeName(node)
 
     override fun exec(executionContext: ExecutionContext) {
 
@@ -118,6 +118,10 @@ class StopCordaNodeTask(registry: Registry, private val nodeName: String) : Base
         }
 
         return pid
+    }
+
+    private fun standardiseNodeName(name: String): String {
+        return if (name.endsWith("_node")) name else name.toLowerCase() + "_node"
     }
 
 }

@@ -3,7 +3,9 @@ package net.corda.workbench.cordaNetwork.web
 import com.natpryce.hamkrest.assertion.assertThat
 import com.natpryce.hamkrest.containsSubstring
 import net.corda.workbench.commons.event.FileEventStore
+import net.corda.workbench.commons.processManager.ProcessManager
 import net.corda.workbench.commons.registry.Registry
+import net.corda.workbench.cordaNetwork.AppConfig
 import net.corda.workbench.transactionBuilder.events.EventFactory
 import org.http4k.core.Method
 import org.http4k.core.Request
@@ -25,7 +27,10 @@ object WebControllerUnitSpec : Spek({
     //val baseUrl = "http://corda-local-network:1115/"
 
     val es = FileEventStore()
-    val registry = Registry().store(es)
+    val registry = Registry()
+            .store(es)
+            .store(ProcessManager())
+            .store(AppConfig())
     val controller = WebController(registry)
 
     describe("The Web Controller") {

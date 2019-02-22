@@ -11,10 +11,11 @@ import java.io.File
 import java.util.*
 
 
-class StartCordaNodeTask(registry: Registry, private val nodeName: String) : BaseTask() {
+class StartCordaNodeTask(registry: Registry, private val node: String) : BaseTask() {
     private val ctx = registry.retrieve(TaskContext::class.java)
     private val es = registry.retrieve(EventStore::class.java)
     private val processManager = registry.retrieve(ProcessManager::class.java)
+    private val nodeName = standardiseNodeName(node)
 
     override fun exec(executionContext: ExecutionContext) {
 
@@ -59,6 +60,10 @@ class StartCordaNodeTask(registry: Registry, private val nodeName: String) : Bas
         }
 
         return pid
+    }
+
+    private fun standardiseNodeName(name: String): String {
+        return if (name.endsWith("_node")) name else name.toLowerCase() + "_node"
     }
 
 
