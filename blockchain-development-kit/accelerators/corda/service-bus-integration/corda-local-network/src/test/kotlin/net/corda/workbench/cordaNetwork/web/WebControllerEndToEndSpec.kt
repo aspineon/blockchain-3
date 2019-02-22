@@ -53,10 +53,11 @@ object WebControllerEndToEndSpec : Spek({
             // 1 - Create Network
             val response1 = controller(Request(Method.POST, "/web/networks/create")
                     .form("networkName", name)
+                    .form("cordaVersion", "3.2")
                     .form("organisations", "Alice\nBob"))
 
             assertThat(response1, hasStatus(Status.OK))
-            assertThat(response1, hasBody(containsSubstring("$name Created")))
+            assertThat(response1, hasBody(containsSubstring("$name")))
 
             // 2 - check status
             val response2 = controller(Request(Method.GET, "/web/networks/$name/status"))

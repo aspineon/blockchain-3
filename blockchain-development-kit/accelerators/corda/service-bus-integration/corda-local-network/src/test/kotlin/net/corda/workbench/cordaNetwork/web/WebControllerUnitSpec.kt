@@ -70,7 +70,7 @@ object WebControllerUnitSpec : Spek({
             val response = controller(Request(Method.GET, "/web/networks/net1"))
 
             assertThat(response, hasStatus(Status.OK))
-            assertThat(response, hasBody(containsSubstring("Network net1")))
+            assertThat(response, hasBody(containsSubstring("<h1>net1</h1")))
             assertThat(response, hasBody(containsSubstring("Alice")))
             assertThat(response, hasBody(containsSubstring("Bob")))
         }
@@ -86,10 +86,12 @@ object WebControllerUnitSpec : Spek({
         it("should create a network") {
             val response = controller(Request(Method.POST, "/web/networks/create")
                     .form("networkName", "testnet01")
+                    .form("cordaVersion", "3.2")
                     .form("organisations", "O=Alice,L=New York,C=US \n Bob"))
 
             assertThat(response, hasStatus(Status.OK))
-            assertThat(response, hasBody(containsSubstring("testnet01 Created")))
+            assertThat(response, hasBody(containsSubstring("testnet01")))
+            assertThat(response, hasBody(containsSubstring("This network has been created")))
 
         }
 

@@ -35,7 +35,7 @@ object NodeConfigTaskSpec : Spek({
 
             assert.that(config.legalName, equalTo("O=Alice,L=New York,C=US"))
             assert.that(config.port, equalTo(10001))
-            assert.that(config.sshPort, equalTo(10004))
+            assert.that(config.sshPort, equalTo(10003))
         }
 
         it("should read 'Bob' config") {
