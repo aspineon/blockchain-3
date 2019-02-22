@@ -79,7 +79,10 @@ class ProcessManager constructor(
      * Kill everything - rather brutal, not for everyday use.
      */
     fun killAll() {
-        for (p in processList) {
+
+        val processListClone = ArrayList<ManagedProcess>(processList);
+
+        for (p in processListClone) {
             println("Forcibly killing $p")
             kill(p.process)
         }
