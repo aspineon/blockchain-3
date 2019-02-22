@@ -19,7 +19,11 @@ import java.io.FileInputStream
 @RunWith(JUnitPlatform::class)
 object ApiControllerSpec : Spek({
 
-    val baseUrl = "http://corda-local-network:11114/"
+    //val baseUrl = "http://corda-local-network:11114/"
+    
+    // use localhost as its easier to use on CI servers
+    val baseUrl = "http://localhost:11114/"
+
     val networkName = "controllerspec"
     lateinit var registry : Registry
 
