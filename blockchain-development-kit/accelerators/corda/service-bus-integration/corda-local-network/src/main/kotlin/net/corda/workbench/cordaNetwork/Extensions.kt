@@ -6,22 +6,22 @@ import org.apache.commons.codec.binary.Hex
 import java.security.MessageDigest
 import org.eclipse.jetty.util.security.Credential.MD5.digest
 import java.math.BigInteger
+import java.util.*
 
 
-fun readFileAsText(path: String, substitutions : Map<String,Any?> = emptyMap()): String {
-    val raw =  FileInputStream(path).bufferedReader().use { it.readText() }
+fun readFileAsText(path: String, substitutions: Map<String, Any?> = emptyMap()): String {
+    val raw = FileInputStream(path).bufferedReader().use { it.readText() }
 
-    if (substitutions.isNotEmpty()){
+    if (substitutions.isNotEmpty()) {
         val mf = DefaultMustacheFactory()
-        val mustache = mf.compile(StringReader(raw),"template.mustache")
+        val mustache = mf.compile(StringReader(raw), "template.mustache")
 
         val bos = ByteArrayOutputStream()
         val writer = OutputStreamWriter(bos)
         mustache.execute(writer, substitutions).flush()
 
         return bos.toString()
-    }
-    else {
+    } else {
         return raw;
     }
 }
@@ -35,7 +35,7 @@ fun File.copyInputStreamToFile(inputStream: InputStream) {
     }
 }
 
-fun File.md5Hash() : String {
+fun File.md5Hash(): String {
     val messageDigest = MessageDigest.getInstance("MD5")
     messageDigest.reset()
     messageDigest.update(this.readBytes())
@@ -43,5 +43,20 @@ fun File.md5Hash() : String {
     //return String(Hex.encodeHex(resultByte))
 
     return String.format("%032x", BigInteger(1, messageDigest.digest()))
+
+}
+
+
+fun String.isUUID(): Boolean {
+    try {
+        UUID.fromString(this)
+        return true
+    } catch (re: RuntimeException) {
+        return false
+    }
+}
+
+fun String.uuid(): UUID {
+    return UUID.fromString(this)
 
 }

@@ -20,7 +20,7 @@ import java.io.FileInputStream
 object ApiControllerSpec : Spek({
 
     //val baseUrl = "http://corda-local-network:11114/"
-    
+
     // use localhost as its easier to use on CI servers
     val baseUrl = "http://localhost:11114/"
 

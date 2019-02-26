@@ -17,6 +17,7 @@ class Javalin(private val port: Int) {
                 // build the standard error response
                 ctx.status(500)
                 val payload = mapOf(
+                        "success" to false,
                         "message" to e.message,
                         "stackTrace" to e.stackTrace.joinToString("\n")
                 )

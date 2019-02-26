@@ -34,6 +34,21 @@ class ApiController(private val registry: Registry) {
                 ApiBuilder.get("ls") { ctx ->
                     ctx.json(repo.networks())
                 }
+
+                // basic check that name or id exists
+                // needed for CCL integration
+                ApiBuilder.get("find") { ctx ->
+                    val nameOrId = ctx.queryParam("nameOrId")!!
+                    val networks = repo.networks()
+
+                    val matches = networks.filter { it.id.toString().startsWith(nameOrId, ignoreCase = true) || it.name.startsWith(nameOrId, ignoreCase = true) }
+                            .map { mapOf("name" to it.name, "id" to it.id) }
+                            .toList()
+
+
+                    ctx.json(successMessage("find returned ${matches.size} results ", matches))
+
+                }
             }
         }
 
@@ -116,6 +131,8 @@ class ApiController(private val registry: Registry) {
                     ctx.json(status)
                 }
 
+
+
                 ApiBuilder.path("nodes/:nodeName") {
                     ApiBuilder.get("config") { ctx ->
                         val networkName = ctx.param("networkName")!!
@@ -153,8 +170,8 @@ class ApiController(private val registry: Registry) {
 
                         if (!isNetworkRunning(networkName)) {
                             val overrideRegistry = registry.overide(taskContext)
-                            val tasks = listOf(StopCordaNodeTask(overrideRegistry,nodeName),
-                                    StartCordaNodeTask(overrideRegistry,nodeName))
+                            val tasks = listOf(StopCordaNodeTask(overrideRegistry, nodeName),
+                                    StartCordaNodeTask(overrideRegistry, nodeName))
                             executor.exec(tasks)
 
                             ctx.json(successMessage("started $nodeName on $networkName - please wait for start to complete"))
@@ -222,11 +239,19 @@ class ApiController(private val registry: Registry) {
     }
 
     private fun successMessage(msg: String): MutableMap<String, Any> {
-        return mutableMapOf("message" to msg)
+        return mutableMapOf("success" to true, "message" to msg)
     }
 
     private fun successMessage(msg: String, payload: Map<String, Any>): MutableMap<String, Any> {
-        return mutableMapOf("message" to msg, "payload" to payload)
+        return mutableMapOf("success" to true, "message" to msg, "payload" to payload)
+    }
+
+    private fun successMessage(msg: String, payload: List<Any>): MutableMap<String, Any> {
+        return mutableMapOf("success" to true, "message" to msg, "payload" to payload)
+    }
+
+    private fun failMessage(msg: String): MutableMap<String, Any> {
+        return mutableMapOf("success" to false, "message" to msg)
     }
 
 
